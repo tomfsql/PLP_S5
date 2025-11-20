@@ -6,39 +6,65 @@ int main(void) {
     char extension[3] = "txt";
     char file[50];
     printf("Le nom du fichier à ouvrir: ");
-    scanf("%s",filename);
+    scanf("%31s",filename);
     FILE *fp;
-    strcpy(file, filename);
-    file[strlen(filename)] = (char)'t';
-    file[strlen(filename)+1] = (char)'x';
-    file[strlen(filename)+2] = (char)'t';
-    fp = fopen(file, "r");
+    int size = 1;
+    fp = fopen(filename, "r");
     if (fp == NULL) {
         perror("Erreur lors de l'ouverture du fichier");
         return 1;
     }
-    char text[30];
+    int temp = ' ';
+    while((temp = fgetc(fp)) != EOF){
+        if(temp == '\n'){
+            size++;
+        }
+    }
+    rewind(fp);
     char pattern[50];
-    int nbOcc[40];
+    int nbOcc[size+1];
+    for(int i = 0; i <= size; i++) {
+        nbOcc[i] = 0;
+    }
     int lineNumber = 1;
-    int countOnLine;
     int TAILLE_MAX_LIGNE = 50;
-
+    char current = ' ';
     printf("Phrase/expression a chercher : \n");
     scanf(" %49[^\n]", pattern);
-    while((fgetc(fp)) != EOF){
-        countOnLine = 0;
-        while((fgetc(fp)) != '\n'){
-            if((fgetc(fp)) == *pattern){
-                if(strcmp(pattern, fgets(file, sizeof(pattern), fp)) == 1){
-                    countOnLine++;
-                }
-            }  
+    while(current != EOF){
+        while(current != pattern[0] && current != '\n' && current != EOF){
+            current = fgetc(fp);
         }
-        nbOcc[lineNumber] = nbOcc[nbOcc[lineNumber]] +1;
-        lineNumber++;
+        if(current == '\n'){
+            lineNumber++;
+            current = fgetc(fp);
+            continue;
+        }
+        if(current == pattern[0]){
+            long offset = ftell(fp);
+            int match = 1;
+            for(int i = 1; i < strlen(pattern); i++){
+                int nextChar = fgetc(fp);
+                if(nextChar == EOF || nextChar != pattern[i]){
+                    match = 0;
+                    break;
+                }
+                else if(nextChar == '\n'){
+                    match = 0;
+                    break;
+                }
+            }
+            if(match){
+                nbOcc[lineNumber]++;
+            }
+            fseek(fp, offset, SEEK_SET);
+            current = fgetc(fp);
+        }
+        current = fgetc(fp);
     }
     fclose(fp);
-    printf("\n");
+    for(int i = 1; i <= size; i++){
+        printf("Nombre d'occurrences de \"%s\" à la ligne %d : %d \n", pattern, i, nbOcc[i]);
+    }
     return 0;
 }
