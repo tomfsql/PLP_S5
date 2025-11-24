@@ -1,3 +1,10 @@
+/*
+Author : Blaise Barriquand
+Goal : Take a string in input and search it among a string array (tableau_phrases), without using standard C libraries
+outside of stdio.
+Notes : all the research of the strings are doing mannually, comparing each char after char.
+*/
+
 #include <stdio.h>
 
 int main(){

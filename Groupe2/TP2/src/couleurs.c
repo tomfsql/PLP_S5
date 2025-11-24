@@ -1,3 +1,12 @@
+/*
+Author : Blaise Barriquand
+Goal : Denombrate the times a single color occurs, using random (or not) color generation.
+Notes : Usage of a prefilled array is possible, changing REMPLISSAGE_RANDOM to 0. Else, parameters of the random
+generation can be set (number of colors generated and max value of each ARGB value, between 0-255)
+Current settings allow to test the programm (few colors printed in output, and enough chances to get the same
+color two or more times)
+*/
+
 #include <stdio.h>
 #include <stdlib.h> // nécessaire pour la génération aléatoire des couleurs
 #include <time.h> // idem

@@ -1,3 +1,9 @@
+/*
+Author : Blaise Barriquand
+Goal : learn how to handle structures, strings, and user input
+Notes : the program is just about testing how strucures and string manipulation works. It doesnt have a real purpose
+*/
+
 #include <stdio.h>
 #include <string.h>
 

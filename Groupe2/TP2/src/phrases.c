@@ -1,3 +1,9 @@
+/*
+Author : Blaise Barriquand
+Goal : Search a specified string in a specified file.
+Notes : Test example file is called "aled", looking for "aled" string in it.
+*/
+
 #include <stdio.h>
 #include <string.h>
 

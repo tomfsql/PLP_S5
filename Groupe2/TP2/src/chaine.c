@@ -1,3 +1,10 @@
+/*
+Author : Blaise Barriquand
+Goal : calculate string length, copy strings into others and concatenate them, without any standard c librairies like string.c
+Notes : The maximum size of the strings in are 200 char. I'd really like to do this dynamically, but it is really
+complicated in C, and didn't have enough time to do this.
+*/
+
 #include <stdio.h>
 
 int taille_chaine(char*);
