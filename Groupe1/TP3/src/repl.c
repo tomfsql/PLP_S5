@@ -17,7 +17,7 @@ struct function
 
 int afficher_version(char* args){
     printf("TP3 - REPL Simple - Version %d\n", version);
-    return 0;
+    return 1;
 }
 
 int afficher_date(char* args){
@@ -25,7 +25,7 @@ int afficher_date(char* args){
     char date_string[20];
     strftime(date_string, 20, "%d-%m-%Y", localtime(&current_time));
     printf("La date actuelle est : %s\n", date_string);
-    return 0;
+    return 1;
 }
 
 int traiter_quit(char* args){
@@ -39,7 +39,7 @@ int traiter_echo(char* texte){
         putchar(texte[i]);
     }
     putchar('\n');
-    return 0;
+    return 1;
 }
 
 int afficher_aide(char* args){
@@ -48,7 +48,7 @@ int afficher_aide(char* args){
     printf("  date        : Affiche la date actuelle.\n");
     printf("  version     : Affiche la version du programme.\n");
     printf("  quit        : Quitte le programme.\n");
-    return 0;
+    return 1;
 }
 
 struct function list[] = {
@@ -84,13 +84,10 @@ int main(){
             if(strncmp(list[i].name, commande, 4) == 0){
                 found=1;
                 if(strcmp(list[i].name,"quit") == 0){
-                    list[i].func("");
-                    continuer = 0;
-                    return 0;
+                    continuer = list[i].func(commande);
                 }
                 else if(strcmp(list[i].name,"echo") != 0){
                     list[i].func("");
-                    break;
                 }
                 else{
                     list[i].func(commande);
@@ -101,7 +98,7 @@ int main(){
         if(!found){
             printf("Commande non reconnue. Essayez 'help' pour afficher l'aide, ou tapez 'quit' pour quitter.\n");
         }
-        printf("\n"); // Saut de ligne après la sortie
+        printf("\n");
     }
     return 0;
 }
