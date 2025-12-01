@@ -34,29 +34,42 @@ int traiter_quit(char* args){
 }
 
 int traiter_echo(char* texte){
-    printf("Commande saisie : %s\n", texte);
-    for(int i = 5; i < strlen(texte); i++){
-        putchar(texte[i]);
+    int first_space = 0;
+    for(int i = 0; texte[i] != '\0'; i++){
+        if(texte[i] == ' '){
+            first_space = i;
+            break;
+        }
     }
-    putchar('\n');
+    if(first_space != 0){
+        printf("%s\n", texte + first_space + 1);
+    } 
+    else {
+        printf("\n");
+    }
     return 1;
 }
 
 int afficher_aide(char* args){
     printf("Aide: Ce programme supporte les commandes suivantes:\n");
-    printf("  echo <text> : Affiche le texte fourni.\n");
-    printf("  date        : Affiche la date actuelle.\n");
-    printf("  version     : Affiche la version du programme.\n");
-    printf("  quit        : Quitte le programme.\n");
+    printf("  echo <text>     : Affiche le texte fourni.\n");
+    printf("  afficher <text> : Affiche le texte fourni.\n");
+    printf("  date            : Affiche la date actuelle.\n");
+    printf("  version         : Affiche la version du programme.\n");
+    printf("  quit            : Quitte le programme.\n");
+    printf("  quitter         : Quitte le programme.\n");
     return 1;
 }
 
 struct function list[] = {
     {"echo", traiter_echo},
+    {"afficher", traiter_echo},
     {"date", afficher_date},
-    {"vers", afficher_version},
+    {"version", afficher_version},
     {"quit", traiter_quit},
+    {"quitter", traiter_quit},
     {"help", afficher_aide},
+    {"aide", afficher_aide},
 };
 
 
@@ -64,8 +77,7 @@ int main(){
     int continuer = 1; // Variable pour contrôler la boucle principale
 
     // Boucle principale qui lit et traite les commandes utilisateur
-    while (continuer)
-    {
+    while (continuer){
         printf("> "); // Affiche le prompt de commande
 
         // Buffer pour stocker la commande utilisateur
@@ -80,25 +92,31 @@ int main(){
         // Traite la commande en fonction de son contenu
         // 
         int found = 0;
-        for(int i = 0; i < sizeof(list)/sizeof(list[0]); i++){
-            if(strncmp(list[i].name, commande, 4) == 0){
-                found=1;
-                if(strcmp(list[i].name,"quit") == 0){
+        int list_size = sizeof(list) / sizeof(list[0]);
+
+        for(int i = 0; i < list_size; i++){
+            
+            // 1. Get the length of the specific command we are checking (e.g., "echo" is 4, "version" is 7)
+            int cmd_len = strlen(list[i].name);
+
+            // 2. Check if the input starts with this command
+            if(strncmp(list[i].name, commande, cmd_len) == 0){
+                
+                // 3. CRITICAL: Check if the next char is a space or end-of-line
+                // This ensures "dates" doesn't trigger "date"
+                if(commande[cmd_len] == ' ' || commande[cmd_len] == '\0'){
+                    
+                    found = 1;
+                    
+                    // 4. Execute generic. 
+                    // We pass the FULL command string (e.g., "echo hello").
+                    // The function itself decides what to do with it.
                     continuer = list[i].func(commande);
-                }
-                else if(strcmp(list[i].name,"echo") != 0){
-                    list[i].func("");
-                }
-                else{
-                    list[i].func(commande);
+                    
+                    break; // We found the command, stop looping
                 }
             }
-            continue;
         }
-        if(!found){
-            printf("Commande non reconnue. Essayez 'help' pour afficher l'aide, ou tapez 'quit' pour quitter.\n");
-        }
-        printf("\n");
     }
     return 0;
 }
