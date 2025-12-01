@@ -101,16 +101,9 @@ int main(){
 
             // 2. Check if the input starts with this command
             if(strncmp(list[i].name, commande, cmd_len) == 0){
-                
-                // 3. CRITICAL: Check if the next char is a space or end-of-line
-                // This ensures "dates" doesn't trigger "date"
                 if(commande[cmd_len] == ' ' || commande[cmd_len] == '\0'){
                     
                     found = 1;
-                    
-                    // 4. Execute generic. 
-                    // We pass the FULL command string (e.g., "echo hello").
-                    // The function itself decides what to do with it.
                     continuer = list[i].func(commande);
                     
                     break; // We found the command, stop looping
