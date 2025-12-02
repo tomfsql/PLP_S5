@@ -52,12 +52,10 @@ int traiter_echo(char* texte){
 
 int afficher_aide(char* args){
     printf("Aide: Ce programme supporte les commandes suivantes:\n");
-    printf("  echo <text>     : Affiche le texte fourni.\n");
-    printf("  afficher <text> : Affiche le texte fourni.\n");
+    printf("  echo ou afficher <text>     : Affiche le texte fourni.\n");
     printf("  date            : Affiche la date actuelle.\n");
     printf("  version         : Affiche la version du programme.\n");
-    printf("  quit            : Quitte le programme.\n");
-    printf("  quitter         : Quitte le programme.\n");
+    printf("  quit ou quitter            : Quitte le programme.\n");
     return 1;
 }
 
@@ -80,33 +78,23 @@ int main(){
     while (continuer){
         printf("> "); // Affiche le prompt de commande
 
-        // Buffer pour stocker la commande utilisateur
         char commande[1024];
 
-        // Lit la commande utilisateur et la stocke dans le buffer
         fgets(commande, sizeof(commande), stdin);
 
-        // Enlève le caractère de fin de ligne ajouté par fgets
         commande[strcspn(commande, "\n")] = 0;
-
-        // Traite la commande en fonction de son contenu
-        // 
         int found = 0;
         int list_size = sizeof(list) / sizeof(list[0]);
 
         for(int i = 0; i < list_size; i++){
-            
-            // 1. Get the length of the specific command we are checking (e.g., "echo" is 4, "version" is 7)
             int cmd_len = strlen(list[i].name);
-
-            // 2. Check if the input starts with this command
             if(strncmp(list[i].name, commande, cmd_len) == 0){
                 if(commande[cmd_len] == ' ' || commande[cmd_len] == '\0'){
                     
                     found = 1;
                     continuer = list[i].func(commande);
                     
-                    break; // We found the command, stop looping
+                    break; 
                 }
             }
         }
