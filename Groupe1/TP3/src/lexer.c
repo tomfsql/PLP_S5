@@ -2,6 +2,10 @@
 #include <ctype.h>
 #include <string.h>
 #include "lexer.h"
+#include "parseur.h"
+
+const char operators[] = "+-*/";
+const char separators[] = ",.";
 
 
 int lexer(char* args){
@@ -15,6 +19,14 @@ int lexer(char* args){
     while ( pos < length ) {
         int posp = 0;
         if ((isdigit((unsigned char)args[pos]) || strchr(separators, args[pos])) && !foundp) {
+            int nbSep = 0;
+            if(strchr(separators, args[pos]) && nbSep < 2){ 
+                nbSep++;
+            }
+            if(strchr(separators, args[pos]) && nbSep >= 2){
+                printf("Format de nombre incorrect \n");
+                return 1;
+            }
             while (pos < (int)length && (isdigit((unsigned char)args[pos]) || strchr(separators, args[pos]))) {
                 p1[posp++] = args[pos++];
             }
@@ -24,8 +36,16 @@ int lexer(char* args){
         } 
         else if ((isdigit((unsigned char)args[pos]) || strchr(separators, args[pos])) && foundp){
             posp = 0;
+            int nbSep = 0;
             while (pos < (int)length && (isdigit((unsigned char)args[pos]) || strchr(separators, args[pos]))) {
-                p2[posp++] = args[pos++];
+                if(strchr(separators, args[pos]) && nbSep < 2){ 
+                nbSep++;
+            }
+            if(strchr(separators, args[pos]) && nbSep >= 2){
+                printf("Format de nombre incorrect \n");
+                return 1;
+            }
+            p2[posp++] = args[pos++];
             }
             p2[posp] = '\0';
             continue;
@@ -49,15 +69,13 @@ int lexer(char* args){
         printf("Trop peu d'arguments \n");
         return 1;
     }
-    char* token[100];
-    token[0] = p1;;
-    token[1] = &operateur;
-    token[2] = p2;
+    char opStr[2] = {operateur, '\0'};
+    char* tokens[] = { p1, opStr, p2, NULL };
     for(int i = 0; i < 3; i++){
-        printf("%s ", token[i]);
+        printf("%s ", tokens[i]);
     }
     printf("\n");
-    return 0;
+    parser(tokens);
 }
 
 int main(){

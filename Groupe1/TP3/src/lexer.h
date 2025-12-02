@@ -1,2 +1,2 @@
-const char operators[] = "+-*/\0";
-const char separators[] = ".,\0";
+extern const char operators[]; 
+extern const char separators[];
