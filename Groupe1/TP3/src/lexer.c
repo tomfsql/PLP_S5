@@ -49,9 +49,14 @@ int lexer(char* args){
         printf("Trop peu d'arguments \n");
         return 1;
     }
-    char token[100];
-    snprintf(token, sizeof token, "%s%c%s", p1, operateur, p2);
-    printf("Token: %s\n", token);
+    char* token[100];
+    token[0] = p1;;
+    token[1] = &operateur;
+    token[2] = p2;
+    for(int i = 0; i < 3; i++){
+        printf("%s ", token[i]);
+    }
+    printf("\n");
     return 0;
 }
 
