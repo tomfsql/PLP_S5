@@ -8,74 +8,108 @@ const char operators[] = "+-*/";
 const char separators[] = ",.";
 
 
-int lexer(char* args){
+int lexer(char* args) {
     char p1[50] = "";
     char p2[50] = "";
     char operateur;
     int length = strlen(args);
     int pos = 0;
-    int foundp = 0;
+    
+    int foundp = 0; 
     int foundop = 0;
-    while ( pos < length ) {
-        int posp = 0;
-        if ((isdigit((unsigned char)args[pos]) || strchr(separators, args[pos])) && !foundp) {
+
+    while (pos < length) {
+        
+        if (foundp == 0 && (isdigit((unsigned char)args[pos]) || args[pos] == '-' || strchr(separators, args[pos]))) {
+            int posp = 0;
             int nbSep = 0;
-            if(strchr(separators, args[pos]) && nbSep < 2){ 
-                nbSep++;
-            }
-            if(strchr(separators, args[pos]) && nbSep >= 2){
-                printf("Format de nombre incorrect \n");
-                return 1;
-            }
-            while (pos < (int)length && (isdigit((unsigned char)args[pos]) || strchr(separators, args[pos]))) {
+            
+            if (args[pos] == '-') {
                 p1[posp++] = args[pos++];
             }
+
+            while (pos < length) {
+                char c = args[pos];
+                
+                if (isdigit((unsigned char)c)) {
+                    p1[posp++] = args[pos++];
+                } 
+                else if (strchr(separators, c)) {
+                    if (nbSep >= 1) break; 
+                    nbSep++;
+                    p1[posp++] = args[pos++];
+                } 
+                else {
+                    break; 
+                }
+            }
             p1[posp] = '\0';
+
+            if (strlen(p1) == 0 || (strcmp(p1, ".") == 0) || (strcmp(p1, "-") == 0) || (strcmp(p1, "-.") == 0)) {
+                 printf("Erreur: Nombre mal formé (p1)\n");
+                 return 1;
+            }
+
             foundp = 1;
             continue;
-        } 
-        else if ((isdigit((unsigned char)args[pos]) || strchr(separators, args[pos])) && foundp){
-            posp = 0;
-            int nbSep = 0;
-            while (pos < (int)length && (isdigit((unsigned char)args[pos]) || strchr(separators, args[pos]))) {
-                if(strchr(separators, args[pos]) && nbSep < 2){ 
-                nbSep++;
-            }
-            if(strchr(separators, args[pos]) && nbSep >= 2){
-                printf("Format de nombre incorrect \n");
-                return 1;
-            }
-            p2[posp++] = args[pos++];
-            }
-            p2[posp] = '\0';
-            continue;
         }
-        else if (!foundop && strchr(operators, args[pos])) {
+        else if (foundp == 1 && foundop == 0 && strchr(operators, args[pos])) {
             operateur = args[pos++];
             foundop = 1;
             continue;
         }
-        else if(isspace((unsigned char)args[pos])){
+        else if (foundp == 1 && foundop == 1 && (isdigit((unsigned char)args[pos]) || args[pos] == '-' || strchr(separators, args[pos]))) {
+            int posp = 0;
+            int nbSep = 0;
+
+            if (args[pos] == '-') {
+                p2[posp++] = args[pos++];
+            }
+
+            while (pos < length) {
+                char c = args[pos];
+                
+                if (isdigit((unsigned char)c)) {
+                    p2[posp++] = args[pos++];
+                } 
+                else if (strchr(separators, c)) {
+                    if (nbSep >= 1) break; 
+                    nbSep++;
+                    p2[posp++] = args[pos++];
+                } 
+                else {
+                    break;
+                }
+            }
+            p2[posp] = '\0';
+            if (strlen(p2) == 0 || (strcmp(p2, ".") == 0) || (strcmp(p2, "-") == 0) || (strcmp(p2, "-.") == 0)) {
+                 printf("Erreur: Nombre mal formé (p2)\n");
+                 return 1;
+            }
+
+            foundp = 2; 
+            continue;
+        }
+        else if (isspace((unsigned char)args[pos])) {
             pos++;
             continue;
         }
         else {
-            printf("Argument non reconnu: %c\n", args[pos]);
+            printf("Argument non reconnu ou ordre incorrect: %c\n", args[pos]);
             return 1;
-            
         }
     }
-    if(!foundop || !foundp || strlen(p2) == 0){
-        printf("Trop peu d'arguments \n");
-        return 1;
+
+    if (!foundop || foundp < 2) {
+         printf("Trop peu d'arguments \n");
+         return 1;
     }
+
     char opStr[2] = {operateur, '\0'};
     char* tokens[] = { p1, opStr, p2, NULL };
-    for(int i = 0; i < 3; i++){
-        printf("%s ", tokens[i]);
-    }
-    printf("\n");
+    
     parser(tokens);
+    return 0;
 }
 
 int main(){
