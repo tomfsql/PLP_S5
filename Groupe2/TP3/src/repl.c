@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include "lexer.h"
+#include "parseur.h"
 
 /**
  * Programme qui simule un interpréteur de commandes simple.
@@ -22,6 +24,7 @@ typedef struct {
 }struct_commandes;
 char current_lang[3] = "en"; //en by default.Si une commande est entrée et n'est pas spécifique à
 // la langue (ex. echo ou date), la langue de la dernière commande est utilisée (essayer avec date, aide, date)
+int continuer = 1; // Variable pour contrôler la boucle principale
 
 //====================== fonctions ====================
 
@@ -30,18 +33,20 @@ int afficher_aide(char*);
 int traiter_echo(char*);
 int traiter_quit(char*);
 int traiter_date(char*);
+int traiter_repl(char*);
 
 
 int main()
 {
-    int continuer = 1; // Variable pour contrôler la boucle principale
 
     struct_commandes commandes_tab[]={
         {"echo",traiter_echo,"en"},
         {"quit", traiter_quit,"en"},
+        {"exit", traiter_quit,"en"},
         {"version", afficher_version,"en"},
         {"help", afficher_aide,"en"},
         {"date",traiter_date,"en"},
+        {"repl", traiter_repl,"en"},
         //ajout des commandes en français
         {"aide", afficher_aide,"fr"},
         {"quitter", traiter_quit,"fr"},
@@ -91,7 +96,6 @@ int afficher_version(char*){
     return 0;
 }
 
-
 int afficher_aide(char*){
     if(strcmp(current_lang,"fr") == 0)
     printf(
@@ -127,12 +131,13 @@ int traiter_echo(char* commande){
     return 0;
 }
 
-int traiter_quit(char*){
+int traiter_quit(char* commande){
     if(strcmp(current_lang, "en") == 0) 
-            printf("Stopping...\n");
-        if(strcmp(current_lang, "fr") == 0) 
-            printf("Arrêt...\n");
-        return 0;
+        printf("Stopping...\n");
+    if(strcmp(current_lang, "fr") == 0) 
+        printf("Arrêt...\n");
+    continuer = 0;
+    return 0;
 }
 
 int traiter_date(char*){
@@ -149,5 +154,10 @@ int traiter_date(char*){
         t->tm_mon + 1,    // Months are numbered from 0 to 11, so add 1 to match real month numbers (1-12)
         t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec);
     }
+    return 0;
+}
+
+int traiter_repl(char* commande){
+    parseur(tokenizer(commande+5));
     return 0;
 }
