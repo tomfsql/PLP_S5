@@ -3,6 +3,7 @@
 #include <time.h>
 #include "lexer.h"
 #include "parseur.h"
+#include "evaluation.h"
 
 /**
  * Programme qui simule un interpréteur de commandes simple.
@@ -158,6 +159,6 @@ int traiter_date(char*){
 }
 
 int traiter_repl(char* commande){
-    parseur(tokenizer(commande+5));
+    printf("res : %f \n",evaluateur(parseur(tokenizer(commande+5))));
     return 0;
 }

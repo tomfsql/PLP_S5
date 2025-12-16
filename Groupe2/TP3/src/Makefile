@@ -1,5 +1,5 @@
 compil_repl: object_compil
-	gcc -Wall repl.o lexer.o parseur.o -o repl
+	gcc -Wall repl.o lexer.o parseur.o evaluation.o -o repl
 
 object_compil:
 	gcc -c -Wall repl.c -o repl.o

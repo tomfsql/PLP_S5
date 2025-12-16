@@ -7,7 +7,8 @@
 typedef struct{
     double operande1;
     double operande2;
-    char operateur;
+    char operateur1;
+    char operateur2;
 } Calcul;
 
 //je définis une structure qui contient un tableau de calculs et sa taille
