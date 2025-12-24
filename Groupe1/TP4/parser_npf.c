@@ -7,10 +7,9 @@ const char separators[] = ",.";
 char pile[20];
 
 int init_pile(){
-    for(int j=0;j<19;j++){
-        pile[j]=' '; 
+    for(int j=0;j<20;j++){
+        pile[j]='\0';
     }
-    pile[19]='\0';
     return 0;
 }
 
@@ -29,62 +28,85 @@ char* pile_ptr = pile;
 
 int size_pile(){
     int p=0;
-    while(pile[p]  != '\0'){
+    while(pile[p] != '\0' && p < 20){
         p++;
     }
-    if(p == 19 && pile[19] != '\0'){
-        return 0;
-    }
-    else{
-        return p;
+    return p;
+}
+
+void push(char op){
+    int sz = size_pile();
+    if(sz < 20){
+        pile[sz] = op;
+        pile[sz+1] = '\0';
     }
 }
 
+char pop(){
+    int sz = size_pile();
+    if(sz > 0){
+        return pile[sz-1];
+        pile[sz-1] = '\0';
+    }
+}
+
+char peek(){
+    int sz = size_pile();
+    if(sz > 0){
+        return pile[sz-1];
+    }
+    return '\0';
+}
 
 int lexer(char* args) {
     init_pile();
-    char output[100] = "";
-    char operateur;
+    char output[200] = "";
     int length = strlen(args);
     int pos = 0;
-    int foundop = 0;
-    int foundN = 0;
-    while (pos < length) {        
-        int posp = 0;
-        if ((isdigit((unsigned char)args[pos]) || args[pos] == '-' || strchr(separators, args[pos]))) {
-            int nbSep = 0;
-            foundN++;
-            output[posp++] = args[pos++];
-            if (args[pos] == '-') {
-                output[posp++] = args[pos++];
-            }
-            while (pos < length) {
-                char c = args[pos];
-                if (strchr(separators, c)) {
-                    if (nbSep >= 1) break; 
-                    nbSep++;
-                } 
-                output[posp++] = args[pos++];
-            }
-            continue;
-        }
-        else if (isspace((unsigned char)args[pos])) {
+    int outpos = 0;
+    while (pos < length) {
+        char current = args[pos];
+        int outpos = 0;
+        if (isspace((unsigned char)args[pos])) {
             pos++;
             continue;
         }
-        else if(strchr(operators, args[pos]) && foundN > 0){
-            if(size_pile() ==  0 || priorite_op(pile[size_pile()-1]) < priorite_op(args[pos])){
-                output[posp++] = args[pos++];
+
+        else if ((isdigit((unsigned char)args[pos]) || args[pos] == '-' || strchr(separators, args[pos]))) {
+
+            int nbSep = 0;
+
+            if(strchr(separators, args[pos])){
+                nbSep++;
+                output[outpos++] = args[pos++];
             }
-            else{
-                while(size_pile() > 0 || priorite_op(pile[size_pile()-1]) >= priorite_op(args[pos])){
-                    char op = pile[size_pile()-1];
-                    pile[size_pile()-1] = ' ';
-                    output[posp++] = op;
+
+            if (args[pos] == '-') {
+                output[outpos++] = args[pos++];
+            }
+
+            while (pos < length) {
+
+                char c = args[pos];
+                if (strchr(separators, c)) {
+                    if (nbSep > 1) break;
+                    nbSep++;
                 }
-                foundop++;
-                pile[size_pile()] = args[pos++];
-                continue;
+                output[outpos++] = args[pos++];
+
+            }
+
+            output[outpos++] = ' ';
+            continue;
+        }
+
+        else if(strchr(operators, args[pos])){
+
+            while(size_pile() > 0 && priorite_op(peek()) >= priorite_op(current)){
+
+                output[pos++] = pop();
+                output[pos++] = ' ';
+
             }
         }
         else {
@@ -93,29 +115,25 @@ int lexer(char* args) {
         }
     }
     while(size_pile() > 0){
-        char op = pile[size_pile()-1];
-        pile[size_pile()-1] = ' ';
-        output[pos++] = op;
+
+        output[pos++] = pop();
+        output[pos++] = ' ';
+    }
+
+    if(outpos > 0 && output[outpos - 1] == ' '){
+
+        outpos--;
     }
     output[pos] = '\0';
     printf("Output RPN: %s\n", output);
-
-    if (!foundop || foundN < 2) {
-         printf("Trop peu d'arguments \n");
-         return 1;
-    }
-
-    char opStr[2] = {operateur, '\0'};
-    //char* tokens[] = { p1, opStr, p2, NULL };
-    
-    //parser(tokens);
-    return 0;
+        return 0;
 }
 
 int main(){
     int keep = 1;
     char args[100];
     while(keep){
+
         printf("Entrez les arguments ( exit pour quitter): ");
         if (!fgets(args, sizeof args, stdin)) return 1;
         if (strncmp(args, "ex",2) == 0) return 0;
