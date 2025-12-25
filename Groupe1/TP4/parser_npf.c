@@ -4,6 +4,7 @@
 
 const char operators[] = "+-*/";
 const char separators[] = ",.";
+const char parenthesis[] = "()";
 char pile[20];
 
 int init_pile(){
@@ -126,6 +127,25 @@ int lexer(char* args) {
 
             output[outpos++] = ' ';
             continue;
+        }
+
+        else if(current == '('){
+            push(current);
+            pos++;
+        }
+        else if(current == ')'){
+            while(size_pile() > 0 && look() != '('){
+
+                output[outpos++] = pop();
+                output[outpos++] = ' ';
+
+            }
+            if(size_pile() == 0){
+                printf("Parenthèse ouvrante manquante\n");
+                return 1;
+            }
+            pop();
+            pos++;
         }
 
         else if(strchr(operators, args[pos])){
