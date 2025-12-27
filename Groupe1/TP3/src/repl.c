@@ -1,15 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <ctype.h>
-#include "parse.h"
-#include "calc.h"
 /**
  * Programme qui simule un interpréteur de commandes simple.
  * Il lit les commandes utilisateur et les traite en fonction de leur contenu.
  */
 
-int version = 3.0;
+int version = 2.0;
 
 struct function
 {
@@ -53,25 +50,12 @@ int traiter_echo(char* texte){
     return 1;
 }
 
-int calcul(char* str){
-    char rpn[200] = "";
-    lexer(str, rpn);
-    if(strcmp(rpn, "") == 0){
-        return 1;
-    }
-    float result = calc(rpn);
-    printf("Résultat: %.6f\n", result);
-    return result;
-}
-
 int afficher_aide(char* args){
     printf("Aide: Ce programme supporte les commandes suivantes:\n");
     printf("  echo ou afficher <text>     : Affiche le texte fourni.\n");
     printf("  date            : Affiche la date actuelle.\n");
     printf("  version         : Affiche la version du programme.\n");
-    printf("  <expression arithmétique> : Effectue le calcul.\n");
     printf("  quit ou quitter            : Quitte le programme.\n");
-
     return 1;
 }
 
@@ -83,7 +67,6 @@ struct function list[] = {
     {"quit", traiter_quit},
     {"quitter", traiter_quit},
     {"help", afficher_aide},
-    {"<expression arithmétique>", calcul},
     {"aide", afficher_aide},
 };
 
@@ -113,11 +96,6 @@ int main(){
                     
                     break; 
                 }
-            }
-            else if(!isalpha((unsigned char)commande[0])){
-                found = 1;
-                calcul(commande);
-                break;
             }
         }
     }
