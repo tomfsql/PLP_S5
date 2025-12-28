@@ -1,9 +1,9 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-const char operators[] = "+-*/";
-const char separators[] = ",.";
-const char parenthesis[] = "()";
+extern const char operators[];
+extern const char separators[];
+extern const char parenthesis[];
 
 int init_pile();
 int priorite_op(char op);
@@ -13,6 +13,5 @@ char pop();
 char look();
 int is_negative_number(char* str, int pos);
 char* lexer(char* args, char* output);
-int main();
 
 #endif

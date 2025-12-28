@@ -133,11 +133,11 @@ int calc(char* args) {
     }
 
     float result = pop_v();
-    printf("Result: %.2f\n", result);
+    printf("%.2f\n", result);
     return 0;
 }
 
-int main(){
+/* int main(){
     int keep = 1;
     char args[100];
     while(keep){
@@ -150,4 +150,4 @@ int main(){
         calc(args);
     }
     return 0;
-}
+} */

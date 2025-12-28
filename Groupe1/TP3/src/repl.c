@@ -60,7 +60,6 @@ int calcul(char* str){
         return 1;
     }
     float result = calc(rpn);
-    printf("Résultat: %.6f\n", result);
     return result;
 }
 
@@ -82,6 +81,7 @@ struct function list[] = {
     {"version", afficher_version},
     {"quit", traiter_quit},
     {"quitter", traiter_quit},
+    {"exit", traiter_quit},
     {"help", afficher_aide},
     {"<expression arithmétique>", calcul},
     {"aide", afficher_aide},

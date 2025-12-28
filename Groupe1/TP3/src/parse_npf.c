@@ -4,6 +4,10 @@
 #include "parse.h"
 char pile[20];
 
+const char operators[] = "+-*/";
+const char separators[] = ",.";
+const char parenthesis[] = "()";
+
 int init_pile(){
     for(int j=0;j<20;j++){
         pile[j]='\0';
@@ -56,11 +60,6 @@ char look(){
         return pile[sz-1];
     }
     return '\0';
-}
-
-int is_negative_number(char* str, int pos) {
-    return (str[pos] == '-' && isdigit((unsigned char)str[pos + 1]) &&
-            (pos == 0 || strchr(operators, str[pos - 1])));
 }
 
 char* lexer(char* args, char* output) {
@@ -171,11 +170,10 @@ char* lexer(char* args, char* output) {
         outpos--;
     }
     output[outpos] = '\0';
-    printf("Output RPN: %s\n", output);
     return output;
 }
 
-int main(){
+/* int main(){
     int keep = 1;
     char args[100];
     while(keep){
@@ -189,4 +187,4 @@ int main(){
         lexer(args, output);
     }
     return 0;
-}
+} */

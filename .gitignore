@@ -54,3 +54,6 @@ dkms.conf
 *.md
 *.txt
 *.pdf
+calc
+parse
+repl
