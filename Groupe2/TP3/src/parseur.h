@@ -7,12 +7,11 @@
 typedef struct{
     double operande1;
     double operande2;
-    char operateur1;
-    char operateur2;
+    char operateur;
 } Calcul;
 
 //je définis une structure qui contient un tableau de calculs et sa taille
-//(pour la scalabilité, en anticipant la suite de l'exercice)
+//(pour la scalabilité, possibilité de faire plusieurs calculs à la suite (par ex 2+3+4+5))
 typedef struct{ 
     Calcul calcul_i[32];
     int Calcultab_size;

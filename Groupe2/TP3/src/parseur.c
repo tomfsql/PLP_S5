@@ -1,126 +1,74 @@
+/* ========= INCLUDES ========= */
 #include "parseur.h"
 #include <stdio.h>
+#include <string.h>
 
-/* reminder
-typedef struct {
-    TokenType type; //type du token
-    char valeur[50]; // chaine de caractères du token
-    double nombre; //si c'est un nombre, sa valeur
-} Token;
+/* ========= FUNCTIONS ========= */
+int print_data_parser(Calcultab);
+char operator_type_to_char(TokenType);
 
-typedef struct {
-    Token Token_i[32]; //tableau de tokens
-    int Tokentab_size; //taille du tableau
-} TokenTab;
+/* ========= EXPLANATIONS ========= */
+/*
+schéma de fonctionnement :
+le parseur va traiter les tokens 1 par 1. Ils sont stockés dans le tableau dans l'ordre suivant :
+opérande1 opérateur1 opérande2 opérateur2 opérande3 opérateur3 opérande4...
+pour les stocker dans des struct contenant 2 opérandes et 1 opérateur, je procède comme suit :
+struct1_calcul => opérande1, opérateur1, opérande2
+struct2_calcul => NULL , opérateur2, opérande3
+struct3_calcul => NULL, opérateur3, opérande4
+et ainsi de suite.
 
-typedef struct{
-    double operande1;
-    double operande2;
-    char operateur;
-} Calcul;
-
-typedef struct{ 
-    Calcul calcul_i[32];
-    int Calcultab_size;
-} Calcultab;
 */
 
-int print_data(Calcultab);
+/* ========= GLOBAL VARIABLES ========= */
 
 Calcultab parseur(const TokenTab token_array){
     Calcultab tab;
-    int expression_i = 0; // compte le nombre d'expressions (2+3)
-    int operande_i = 0; //pour voir si il s'agit de la première ou seconde opérande
-    int operateur_i = 0; //pour voir s'il s'agit du premier ou second operateur
-    //deuxième version : modification pour faire plusieurs calculs (2+3+4 par exemple)
-    for(int i = 0 ; i< token_array.Tokentab_size;i++){
-        if(i%4==0 && i!=0) //si on a fini de remplir 1 calcul
-            expression_i++; //on remplit le calcul suivant
+    memset(&tab, 0, sizeof(Calcultab)); // init du tableau à 0
+    tab.Calcultab_size = 1; //le nombre d'unités du tableau tab (nombre de calculs traités)
+    //pour les 3 premiers tokens, ils vont automatiquement dans la première structure calcul
+    tab.calcul_i[0].operande1 = token_array.Token_i[0].nombre;
+    tab.calcul_i[0].operateur = operator_type_to_char(token_array.Token_i[1].type);
+    tab.calcul_i[0].operande2 = token_array.Token_i[2].nombre;
 
-        switch(token_array.Token_i[i].type){
-            case Token_nombre :
-                if(operande_i == 0){
-                    tab.calcul_i[expression_i].operande1 = token_array.Token_i[i].nombre;
-                    operande_i++;
-                }else if(operande_i == 1){
-                    tab.calcul_i[expression_i].operande2 = token_array.Token_i[i].nombre;
-                    operande_i = 0;
-                }
-                break;
-            case Token_divise :
-                if(operateur_i == 0){
-                    tab.calcul_i[expression_i].operateur1 = '/' ;
-                    operateur_i++;
-                }else if(operateur_i == 1 && token_array.Token_i[i+1].type == Token_nombre){
-                    tab.calcul_i[expression_i].operateur2 = '/' ;
-                    operateur_i = 0;
-                }                
-                break;
-            case Token_moins :
-                if(operateur_i == 0){
-                    tab.calcul_i[expression_i].operateur1 = '-' ;
-                    operateur_i++;
-                }else if(operateur_i == 1 && token_array.Token_i[i+1].type == Token_nombre){
-                    tab.calcul_i[expression_i].operateur2 = '-' ;
-                    operateur_i = 0;
-                }   
-                break;
-            case Token_multiplie :
-                if(operateur_i == 0){
-                    tab.calcul_i[expression_i].operateur1 = '*' ;
-                    operateur_i++;
-                }else if(operateur_i == 1 && token_array.Token_i[i+1].type == Token_nombre){
-                    tab.calcul_i[expression_i].operateur2 = '*' ;
-                    operateur_i = 0;
-                }                   break;
-            case Token_plus :
-                if(operateur_i == 0){
-                    tab.calcul_i[expression_i].operateur1 = '+' ;
-                    operateur_i++;
-                }else if(operateur_i == 1 && token_array.Token_i[i+1].type == Token_nombre){
-                    tab.calcul_i[expression_i].operateur2 = '+' ;
-                    operateur_i = 0;
-                }
-                break;
-            default :
-                break;
+    if(token_array.Tokentab_size > 3){ //vérif pour savoir si il ya plus que 2 opérandes et 1 opérateur
+        for(int i = 3 ; i< token_array.Tokentab_size;i+=2){ //on parcours les token 1 par 1 en skippant les 3 premiers, déjà traités
+            tab.calcul_i[tab.Calcultab_size].operande1 = 0; // on le met à 0
+            tab.calcul_i[tab.Calcultab_size].operateur = operator_type_to_char(token_array.Token_i[i].type);
+            tab.calcul_i[tab.Calcultab_size].operande2 = token_array.Token_i[i+1].nombre;
+            tab.Calcultab_size++;
         }
     }
-    tab.Calcultab_size = expression_i;
-    print_data(tab);
+
+
+    tab.Calcultab_size = tab.Calcultab_size;
+    print_data_parser(tab);
     return tab;
 } 
 
-int print_data(Calcultab tab){
-    
+int print_data_parser(Calcultab tab){
+    printf("==========parseur finished============== \n");
     printf("Data : ");
-    for(int i=0 ; i<= tab.Calcultab_size ; i++){
-        printf(" %.2f",tab.calcul_i[i].operande1);
-        printf(" %c", tab.calcul_i[i].operateur1);
-        printf(" %.2f", tab.calcul_i[i].operande2);
-        if(tab.calcul_i[i].operateur1 == '\0' || tab.calcul_i[i].operateur2 == '\0'){
-            printf("\n");
-            return 1;
-
-        }else{
-            printf(" %c",tab.calcul_i[i].operateur2);
+    printf(" %.2f",tab.calcul_i[0].operande1);
+    printf(" %c", tab.calcul_i[0].operateur);
+    printf(" %.2f", tab.calcul_i[0].operande2);
+    if(tab.Calcultab_size > 1){
+        for(int i=1 ; i<= tab.Calcultab_size ; i++){
+            printf(" %c", tab.calcul_i[i].operateur);
+            printf(" %.2f", tab.calcul_i[i].operande2);
         }
     }
+    printf("\nTaille Calcultab : %d",tab.Calcultab_size);
     printf("\n");
     return 1;
 }
 
-/*
-int print_data(Calcultab tab){
-    
-    printf("Data : ");
-    for(int i=0 ; i<= tab.Calcultab_size ; i++){
-        printf("%.2f %c %.2f ",tab.calcul_i[i].operande1,tab.calcul_i[i].operateur1,tab.calcul_i[i].operande2);
-        if(tab.calcul_i[i].operateur2 != '\0' ){
-            printf("%c ",tab.calcul_i[i].operateur2);
-        }
+char operator_type_to_char(TokenType type){
+    switch(type) {
+        case Token_plus:      return '+'; break;
+        case Token_moins:     return '-'; break;
+        case Token_multiplie: return '*'; break;
+        case Token_divise:    return '/'; break;
+        default: return '\0'; break;
     }
-    printf("\n");
-    return 1;
 }
-    */

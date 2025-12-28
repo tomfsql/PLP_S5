@@ -2,99 +2,93 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
-/*
-    Token_nombre,
-    Token_plus,
-    Token_moins,
-    Token_divise,
-    Token_multiplie,
-    Token_fin,
-    Token_erreur
-    */
-
-/*Fonctionnement principal du lexer :
-prend la string en entrée, et la parcours caractère par caractère. 
-Tant que le caractère est différent des signes mathématiques, les caractères sont ajoutés à un premier string.
-Lorsqu'on arrive au signe mathématique, le signe est détecté et enregistré dans un token.
-On continue le scanning en ajoutant les caractères à un deuxième string.
-On convertit ensuite les 2 strings en type int à l'aide de la fonction string_to_int
-    
-*/
-
-double string_to_int(char*);
-
-/* global variables*/
-int string_to_int_ok = 0; // =0 if conversion is OK, 1 else.
-char number_string[100]; //numbers in string
-int number1 = 0;
-int number2 = 0;
-
-TokenTab tokenizer(const char* expression){
-    printf("lexer.c starting\n");
-    TokenTab liste;
-    liste.Tokentab_size = 0;
-    int i = 0;
-    int string_index = 0;
-    int number_index = 0;
-
-    while(expression[i] !=  '\0'){
-        if(expression[i] == '*' || expression[i] == '+' || expression[i] == '-' || expression[i] == '/'){
-            if((expression[i+1] >= '0' && expression[i+1] <= '9') || expression[i+1] == ' '){ //si le nombre après l'opérateur est bien un chiffre ou un espace
-                number_string[string_index] = '\0';
-                liste.Token_i[liste.Tokentab_size].nombre = string_to_int(number_string);
-                printf("Number detected : %2.2f , token %d\n",liste.Token_i[liste.Tokentab_size].nombre,liste.Tokentab_size);
-                liste.Token_i[liste.Tokentab_size].type = Token_nombre;
-                liste.Tokentab_size++;
-                for(int j=0 ; j<100 ; j++)
-                    number_string[j] = '\0';
-                string_index = 0;
-
-                switch(expression[i]){
-                    case '*' :
-                        liste.Token_i[liste.Tokentab_size].type = Token_multiplie;
-                        printf("Operand detected : * , token %d\n",liste.Tokentab_size);
-                    break;
-                    case '+' :
-                        liste.Token_i[liste.Tokentab_size].type = Token_plus;
-                        printf("Operand detected : + ,token %d\n",liste.Tokentab_size);
-                    break;
-                    case '-' :
-                        liste.Token_i[liste.Tokentab_size].type = Token_moins;
-                        printf("Operand detected : - , token %d\n",liste.Tokentab_size);
-
-                    break;
-                    case '/' :
-                        liste.Token_i[liste.Tokentab_size].type = Token_divise;
-                        printf("Operand detected : / , token %d\n",liste.Tokentab_size);
-                    break;
-                }
-                liste.Tokentab_size++;
-                number_index++;
-
-        }
-    }
-        if ((expression[i] >= '0' && expression[i] <= '9') || expression[i] == '.' || expression[i] == ','){
-                    number_string[string_index] = expression[i];
-                    string_index++;
-                 }
-        i++;
-    }
-    liste.Token_i[liste.Tokentab_size].nombre = string_to_int(number_string);
-            printf("Number detected : %2.2f , token %d\n",liste.Token_i[liste.Tokentab_size].nombre,liste.Tokentab_size);
-            liste.Token_i[liste.Tokentab_size].type = Token_nombre;
-            liste.Tokentab_size++;
-    return liste;
+//fonction utilitaire pour vérifier si un caractère est un opérateur
+int est_operateur(char c) {
+    return (c == '+' || c == '-' || c == '*' || c == '/');
 }
 
-double string_to_int(char* str){
+int print_data_lexer(TokenTab data){ //fonction  d'affichage des data qui sont envoyées au parseur
+    
+    printf("========== lexer finished ============== \n");
+    printf("Data : ");
+    for(int i=0 ; i<= data.Tokentab_size ; i++){
+        switch (data.Token_i[i].type)
+        {
+        case Token_nombre:
+            printf(" %.2f", data.Token_i[i].nombre);
+            break;
+        case Token_plus:
+            printf(" +");
+            break;
+        case Token_moins:
+            printf(" -");
+            break;
+        case Token_multiplie:
+            printf(" *");
+            break;
+        case Token_divise:
+            printf(" /");
+            break;
+        default:
+            break;
+        }
+    }
+    printf("\nTaille Token_tab : %d",data.Tokentab_size);
+    printf("\n");
+    return 1;
+}
 
-    char* endptr;
-    printf("string_to_int : %s\n", str);
-    double num = strtod(str, &endptr);
-    printf("strtod : %.2f\n",num);
+TokenTab tokenizer(const char* expression) {
+    TokenTab liste;
+    liste.Tokentab_size = 0;
+    const char *p = expression; // on utilise un pointeur pour parcourir la chaîne
 
-    if (endptr == str )
-        printf("Chaîne invalide\n");
-    return num;
+    while (*p != '\0') { //on parcours la chaine entrée
+        //Ignorer les espaces
+        if (isspace(*p)) {
+            p++;
+            continue; //on retourne au début de la boucle
+        }
+
+        // détecter si on doit lire un nombre :
+        // un nombre commence par un chiffre OU par un '-' suivi d'un chiffre (nombre négatif)
+        // mais le '-' fait partie d'un nombre seulement s'il est au début ou après un autre opérateur
+        if (isdigit(*p) || (*p == '-' && (liste.Tokentab_size == 0 || liste.Token_i[liste.Tokentab_size-1].type != Token_nombre))) {
+            char *fin_nombre;
+            double val = strtod(p, &fin_nombre);
+
+            if (p != fin_nombre) { // si un nombre a bien été lu, on le rajoute au tableau de tokens
+                liste.Token_i[liste.Tokentab_size].type = Token_nombre;
+                liste.Token_i[liste.Tokentab_size].nombre = val;
+                liste.Tokentab_size++;
+                p = fin_nombre; // on avance le pointeur à la fin du nombre lu
+                continue; //on retourne au début de la boucle
+            }
+        }
+
+        // pour détecter les opérateurs
+        if (est_operateur(*p)) {
+            switch (*p) {
+                case '+': liste.Token_i[liste.Tokentab_size].type = Token_plus; break;
+                case '-': liste.Token_i[liste.Tokentab_size].type = Token_moins; break;
+                case '*': liste.Token_i[liste.Tokentab_size].type = Token_multiplie; break;
+                case '/': liste.Token_i[liste.Tokentab_size].type = Token_divise; break;
+            }
+            liste.Tokentab_size++;
+            p++;
+            continue; //on retourne au début de la boucle
+        }
+
+        // si caractère inconnu
+        p++; 
+    }
+
+    // Ajout d'un token de fin (optionnel mais utile pour le parseur)
+    liste.Token_i[liste.Tokentab_size].type = Token_fin;
+    
+    // Debug
+    print_data_lexer(liste); 
+    return liste;
 }

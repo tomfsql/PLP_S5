@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 #include "lexer.h"
 #include "parseur.h"
 #include "evaluation.h"
@@ -82,12 +83,18 @@ int main()
                 break;
             }
         }
-        if(commande_trouvee == 0){
-            // Affiche un message d'erreur si la commande est inconnue
-            printf("Commande non reconnue. Essayez 'echo <text>' pour afficher du texte, help pour afficher l'aide, ou tapez 'quit' pour quitter.\n");
+        
+        if(commande_trouvee == 0 && strlen(commande) > 0){
+            // On vérifie si le premier caractère est un chiffre ou un signe '-'
+            // pour décider si on tente un calcul
+            if(isdigit(commande[0]) || (commande[0] == '-' && isdigit(commande[1]))){
+                // On appelle directement l'évaluateur (sans le décalage de +5 du "repl ")
+                printf("res : %f \n", evaluateur(parseur(tokenizer(commande))));
+            } else {
+                printf("Commande non reconnue. Tapez 'help' pour l'aide.\n");
+            }
         }
     }
-
     return 0;
 }
 

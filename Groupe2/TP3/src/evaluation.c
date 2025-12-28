@@ -1,49 +1,57 @@
 #include <stdio.h>
+#include <math.h>
 #include "evaluation.h"
 
 
 double evaluateur(Calcultab tab){
 
     double res = tab.calcul_i[0].operande1;
-    for(int i=0 ; i<=tab.Calcultab_size ; i++){
-        switch (tab.calcul_i[i].operateur1)
+    //premier calcul réalisé d'office
+    switch (tab.calcul_i[0].operateur)
         {
         case '/':
-            res = res / tab.calcul_i[i].operande2;
+            if (tab.calcul_i[0].operande2 == 0) {
+                printf("Erreur : Division par zéro !\n");
+                return 0.0; // Ou une valeur d'erreur spécifique
+            }
+            res = res / tab.calcul_i[0].operande2;
             break;
         case '*':
-            res = res * tab.calcul_i[i].operande2;
+            res = res * tab.calcul_i[0].operande2;
             break;
         case '+':
-            res = res + tab.calcul_i[i].operande2;
+            res = res + tab.calcul_i[0].operande2;
             break;
         case '-':
-            res = res - tab.calcul_i[i].operande2;
+            res = res - tab.calcul_i[0].operande2;
             break;
         default:
             break;
         }
-        if(tab.calcul_i[i].operateur2 != '\0'){
-            switch (tab.calcul_i[i].operateur2)
-            {
+    //et on continue s'il y en a d'autres
+    if(tab.Calcultab_size > 1){
+        for(int i=1 ; i<=tab.Calcultab_size ; i++){
+            switch (tab.calcul_i[i].operateur){
             case '/':
-                res = res / tab.calcul_i[i+1].operande1;
+                if (tab.calcul_i[i].operande2 == 0) {
+                    printf("Erreur : Division par zéro !\n");
+                    return 0.0; // Ou une valeur d'erreur spécifique
+                }
+                res = res / tab.calcul_i[i].operande2;
                 break;
             case '*':
-                res = res * tab.calcul_i[i+1].operande1;
+                res = res * tab.calcul_i[i].operande2;
                 break;
             case '+':
-                res = res + tab.calcul_i[i+1].operande1;
+                res = res + tab.calcul_i[i].operande2;
                 break;
             case '-':
-                res = res - tab.calcul_i[i+1].operande1;
-                break; 
+                res = res - tab.calcul_i[i].operande2;
+                break;
             default:
                 break;
             }
-
         }
     }
     return res;
-
 }
