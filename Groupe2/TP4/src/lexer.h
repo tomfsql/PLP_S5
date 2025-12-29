@@ -8,6 +8,8 @@ typedef enum {
     Token_moins,
     Token_divise,
     Token_multiplie,
+    Token_par_ouv,
+    Token_par_fer,
     Token_fin,
     Token_erreur
 } TokenType;

@@ -3,10 +3,15 @@
 /* ========= INCLUDES ========= */
 #include <stdio.h>
 
+/* ========= MACROS ========= */
+
+/* ========= GLOBAL VARIABLES ========= */
+
+
 /* ========= FUNCTIONS ========= */
 
 
-/* ========= GLOBAL VARIABLES ========= */
+
 
 
 

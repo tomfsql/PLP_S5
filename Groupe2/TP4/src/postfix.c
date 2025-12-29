@@ -1,124 +1,162 @@
-/* ========= EXPLANATIONS ========= */
-/*
-coder un algorithe qui transforme une chaine de caractères contenant une expression infixée en postfixée. Par exemple :
-infixée :  3+4*(5-2)
-postfixée : 3452-*+
-
-fonctionnement :
-initialisation : pile qui est vide, qui contiendra les opérateurs
-parcours de l'expression : 
-    si nombre rencontré, on l'ajoute à la sortie
-    si opérateur rencontré :
-        si pile vide ou opérateur a une prio plus élevée que le dernier item de la pile, on empile l'opérateur
-        sinon, on dépile la pile jusqu'à trouver un opérateur avec moins de prio, et on ajoute ces opérateurs à la sortie
-    si parenthèse ouvrante : on la pousse sur la pile
-    si parenthèse fermante : on dépile la pile et on ajoute à la sortie les opérateurs jusqu'à une parenthèse ouvrante, et la supprimer
-à la fin, dépiler tous les opérateurs de la pile
-
-*/
-/* ========= INCLUDES ========= */
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include "lexer.h"
 
+/* ========= MACROS ========= */
+#define SIZE_MAX 16
+
 /* ========= FUNCTIONS ========= */
 int op_prio(char operator);
+char stack_handler_char(int way, char operator);
+int print_data_postfix(char* sortie);
 
-char pile_handler(int way, char operator);
+// Helper pour convertir le caractère de la pile en type de token
+TokenType char_to_type(char c) {
+    if (c == '+') return Token_plus;
+    if (c == '-') return Token_moins;
+    if (c == '*') return Token_multiplie;
+    if (c == '/') return Token_divise;
+    return Token_erreur;
+}
 
 /* ========= GLOBAL VARIABLES ========= */
 char pile[256]; //pile d'opérateurs
 int pile_i = 0;
 
-int main(){
+TokenTab postfix(char* commande){
 
-    printf("> "); // Affiche le prompt de commande
-
-    // Buffer pour stocker la commande utilisateur
-    char commande[1024];
     char sortie[1024]; //chaine de sortie
     int token_i = 0;
     int sortie_i = 0;
-
-
-    // Lit la commande utilisateur et la stocke dans le buffer
-    fgets(commande, sizeof(commande), stdin);
-    /*
-    pile[0] = 'a';
-    pile[1] = 'b';
-    pile[2] = 'c';
-    pile[3] = 'd';
-    pile_i=4;
-    for(int i = 0 ; i < pile_i ; i++){
-        printf("Pile[%d] : %c\n",i,pile[i]);
-    }
-    pile_handler(0,'z');
-    printf("Empilage\n");
-    for(int i = 0 ; i < pile_i ; i++){
-        printf("Pile[%d] : %c\n",i,pile[i]);
-    }
-    char c = pile_handler(1,'z');
-    printf("dépilage\n");
-    for(int i = 0 ; i < pile_i ; i++){
-        printf("Pile[%d] : %c\n",i,pile[i]);
-    }
-    printf("retour dépilage : %c\n",c);
-    */
-
+    TokenTab token_out; //tableau de tokens de sortie, destiné à l'évaluateur
+    token_out.Tokentab_size = 0;
 
     TokenTab token_array = tokenizer(commande); //renvoie l'expression en tokens 
     while(token_i < token_array.Tokentab_size){
-        Token curr_token = token_array.Token_i[token_i]; //pour simplifier la lecture; on manipule le token courant
+        Token curr_token = token_array.Token_i[token_i]; //pour simplifier la lecture
+        token_i++;
+
+        // gestion des nombres
         if( curr_token.type == Token_nombre )
         {
-             sortie[strlen(sortie)] == curr_token.nombre;
+            sortie[sortie_i] = (char)((int)curr_token.nombre + '0'); // Debug string (limité à 0-9)
+            
+            // replissage du tokentab de sortie
+            token_out.Token_i[token_out.Tokentab_size].nombre = curr_token.nombre;
+            token_out.Token_i[token_out.Tokentab_size].type = Token_nombre;
+            token_out.Tokentab_size++;
+            
+            sortie_i++;
+            printf("Nombre ajouté à la sortie %.2f \n",curr_token.nombre);
+            continue;
         }
 
+        // gestion des opérateurs
         if( curr_token.type == Token_divise || curr_token.type == Token_multiplie || curr_token.type == Token_moins || curr_token.type == Token_plus )
         {
-            if(strlen(pile) == 0 || op_prio(curr_token.valeur) > op_prio(pile[pile_i]) ){
-                pile_handler(0,curr_token.valeur);
+            if(pile_i == 0 || op_prio(curr_token.valeur) > op_prio(pile[0]) ){
+                stack_handler_char(0,curr_token.valeur);
+                printf("Opérateur %c empilé\n",curr_token.valeur);
             }else{
-                do{
-                    char c = pile[]
-
-                }while()
+                // On dépile jusqu'à trouver un opérateur avec moins de priorité
+                while(pile_i > 0 && op_prio(curr_token.valeur) <= op_prio(pile[0])) {
+                    char d = stack_handler_char(1, '\0');
+                    sortie[sortie_i] = d;
+                    
+                    // Ajout de l'opérateur dépilé au tokentab
+                    token_out.Token_i[token_out.Tokentab_size].valeur = d;
+                    token_out.Token_i[token_out.Tokentab_size].type = char_to_type(d);
+                    token_out.Tokentab_size++;
+                    
+                    sortie_i++;
+                }
+                stack_handler_char(0, curr_token.valeur);
+                printf("Opérateur %c empilé après dépilage\n",curr_token.valeur);
             }
+            continue;
+        }
+
+        // gestion de la par ouvrante
+        if(curr_token.type == Token_par_ouv){
+            stack_handler_char(0,curr_token.valeur);
+            printf("Parenthèse ouvrante empilée\n");
+            continue;
+        }
+
+        // gestion de la par fermante
+        if(curr_token.type == Token_par_fer){
+            while(pile_i > 0 && pile[0] != '('){
+                char d = stack_handler_char(1, '\0');
+                sortie[sortie_i] = d;
+                
+                // Ajout au tokentab de sortie
+                token_out.Token_i[token_out.Tokentab_size].valeur = d;
+                token_out.Token_i[token_out.Tokentab_size].type = char_to_type(d);
+                token_out.Tokentab_size++;
+                
+                sortie_i++;
+            }
+            if (pile_i > 0 && pile[0] == '(') {
+                stack_handler_char(1, '\0'); // On supprime '(' sans l'ajouter à la sortie
+            }
+            printf("Parenthèse fermante : dépilage terminé\n");
+            continue;
         }
     }
 
-    return 0;
+    // On vide les opérateurs restants à la fin
+    while(pile_i > 0){
+        char d = stack_handler_char(1,'\0');
+        sortie[sortie_i] = d;
+        
+        token_out.Token_i[token_out.Tokentab_size].valeur = d;
+        token_out.Token_i[token_out.Tokentab_size].type = char_to_type(d);
+        token_out.Tokentab_size++;
+        
+        sortie_i++;
+    }
+
+    sortie[sortie_i] = '\0'; 
+    print_data_postfix(sortie);
+    
+    // Ajout d'un token de fin pour la sécurité de l'évaluateur
+    token_out.Token_i[token_out.Tokentab_size].type = Token_fin;
+
+    return token_out;
 }
 
 int op_prio(char operator){
     if(operator == '-' || operator == '+')
-        return 1; //prio basse
+        return 1;
     if(operator == '/' || operator == '*')
-        return 2; //prio moyenne
-    if(operator == '(' || operator == ')')
-        return 3; //prio haute
-    return 0; //default : prio nulle
+        return 2;
+    if(operator == '(') 
+        return 0; 
+    return 0;
 }
 
-
-char pile_handler(int way, char operator){
-    if(way == 0){ // signifie que l'on doit empiler
-        for(int j = pile_i ; j >= 0 ; j--){
-            pile[j+1] = pile[j];
+char stack_handler_char(int way, char operator){
+    if(way == 0){ // Empiler
+        for(int j = pile_i ; j > 0 ; j--){
+            pile[j] = pile[j-1];
         }
         pile[0] = operator;
         pile_i++;
         return '\0';
     }
-    else if(way == 1){ //signifie que l'on doit dépiler
+    else if(way == 1){ // Dépiler
         char res = pile[0];
-        for(int j = 0 ; j <= pile_i ; j++){
+        for(int j = 0 ; j < pile_i -1 ; j++){
             pile[j] = pile[j+1];
         }
         pile_i--;
         return res;
-    }else{
-        return '\0';
     }
+    return '\0';
+}
+
+int print_data_postfix(char* sortie){
+    printf("Sortie String : %s\n", sortie);
+    return 0;
 }

@@ -6,7 +6,7 @@
 
 //fonction utilitaire pour vérifier si un caractère est un opérateur
 int est_operateur(char c) {
-    return (c == '+' || c == '-' || c == '*' || c == '/');
+    return (c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')');
 }
 
 int print_data_lexer(TokenTab data){ //fonction  d'affichage des data qui sont envoyées au parseur
@@ -83,13 +83,26 @@ TokenTab tokenizer(const char* expression) {
                 case '/': liste.Token_i[liste.Tokentab_size].type = Token_divise; 
                     liste.Token_i[liste.Tokentab_size].valeur = '/';
                     break;
+                case '(': liste.Token_i[liste.Tokentab_size].type = Token_par_ouv; 
+                    liste.Token_i[liste.Tokentab_size].valeur = '(';
+                    break;
+                case ')': liste.Token_i[liste.Tokentab_size].type = Token_par_fer; 
+                    liste.Token_i[liste.Tokentab_size].valeur = ')';
+                    break;
             }
             liste.Tokentab_size++;
             p++;
             continue; //on retourne au début de la boucle
         }
 
-        // si caractère inconnu
+        // gestion des caractères non reconnus (autrement dit, erreur et exit)
+        if (!isspace(*p) && *p != '\0') {
+            printf("Erreur Lexer : Caractère non reconnu '%c'\n", *p);
+            liste.Token_i[liste.Tokentab_size].type = Token_erreur;
+            liste.Tokentab_size++;
+        }
+
+        // si autre caractère inconnu
         p++; 
     }
 
@@ -97,6 +110,6 @@ TokenTab tokenizer(const char* expression) {
     liste.Token_i[liste.Tokentab_size].type = Token_fin;
     
     // Debug
-    print_data_lexer(liste); 
+    //print_data_lexer(liste); 
     return liste;
 }

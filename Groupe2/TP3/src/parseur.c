@@ -42,7 +42,7 @@ Calcultab parseur(const TokenTab token_array){
 
 
     tab.Calcultab_size = tab.Calcultab_size;
-    print_data_parser(tab);
+    //print_data_parser(tab);
     return tab;
 } 
 

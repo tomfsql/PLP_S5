@@ -89,6 +89,6 @@ TokenTab tokenizer(const char* expression) {
     liste.Token_i[liste.Tokentab_size].type = Token_fin;
     
     // Debug
-    print_data_lexer(liste); 
+    //print_data_lexer(liste); 
     return liste;
 }
