@@ -28,6 +28,8 @@ make && ./repl
 
 ```
 
+Warning de compilation sur une variable inutilisée normal (sert de debug).
+
 ## Fonctionnalités
 
 ### Commandes multilingues fr/en

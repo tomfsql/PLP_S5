@@ -26,7 +26,7 @@ int pile_i = 0;
 
 TokenTab postfix(char* commande){
 
-    char sortie[1024]; //chaine de sortie, non utilisée si print_data_postfix(sortie) n'est pas appelée. Warning de compilation normal.
+    char sortie[1024]; //chaine de sortie
     int token_i = 0;
     int sortie_i = 0;
     TokenTab token_out; //tableau de tokens de sortie, destiné à l'évaluateur
@@ -48,7 +48,7 @@ TokenTab postfix(char* commande){
             token_out.Tokentab_size++;
             
             sortie_i++;
-            //printf("Nombre ajouté à la sortie %.2f \n",curr_token.nombre);
+            printf("Nombre ajouté à la sortie %.2f \n",curr_token.nombre);
             continue;
         }
 
@@ -57,7 +57,7 @@ TokenTab postfix(char* commande){
         {
             if(pile_i == 0 || op_prio(curr_token.valeur) > op_prio(pile[0]) ){
                 stack_handler_char(0,curr_token.valeur);
-                //printf("Opérateur %c empilé\n",curr_token.valeur);
+                printf("Opérateur %c empilé\n",curr_token.valeur);
             }else{
                 // On dépile jusqu'à trouver un opérateur avec moins de priorité
                 while(pile_i > 0 && op_prio(curr_token.valeur) <= op_prio(pile[0])) {
@@ -72,7 +72,7 @@ TokenTab postfix(char* commande){
                     sortie_i++;
                 }
                 stack_handler_char(0, curr_token.valeur);
-                //printf("Opérateur %c empilé après dépilage\n",curr_token.valeur);
+                printf("Opérateur %c empilé après dépilage\n",curr_token.valeur);
             }
             continue;
         }
@@ -80,7 +80,7 @@ TokenTab postfix(char* commande){
         // gestion de la par ouvrante
         if(curr_token.type == Token_par_ouv){
             stack_handler_char(0,curr_token.valeur);
-            //printf("Parenthèse ouvrante empilée\n");
+            printf("Parenthèse ouvrante empilée\n");
             continue;
         }
 
@@ -100,7 +100,7 @@ TokenTab postfix(char* commande){
             if (pile_i > 0 && pile[0] == '(') {
                 stack_handler_char(1, '\0'); // On supprime '(' sans l'ajouter à la sortie
             }
-            //printf("Parenthèse fermante : dépilage terminé\n");
+            printf("Parenthèse fermante : dépilage terminé\n");
             continue;
         }
     }
@@ -118,7 +118,7 @@ TokenTab postfix(char* commande){
     }
 
     sortie[sortie_i] = '\0'; 
-    //print_data_postfix(sortie);
+    print_data_postfix(sortie);
     
     // Ajout d'un token de fin pour la sécurité de l'évaluateur
     token_out.Token_i[token_out.Tokentab_size].type = Token_fin;
