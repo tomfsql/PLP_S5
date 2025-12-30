@@ -1,0 +1,201 @@
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <ctype.h>
+#include "lexer.h"
+#include "postfix.h"
+#include "evaluateur.h"
+#include "variables.h"
+
+/**
+ * Programme qui simule un interpréteur de commandes simple.
+ * Il lit les commandes utilisateur et les traite en fonction de leur contenu.
+ */
+
+//====================== constantes ====================
+// Program version :
+#define CLI_MAIN_VERS 3
+#define CLI_LOWER_VERS 0
+//program version is CLI_MAIN_VERS.CLI_LOWER_VERS
+
+//====================== variables globales ====================
+
+typedef struct {
+    char commande[50]; //nom
+    int (*p_fonction)(char*); //pointeur vers la fonction
+    char lang[3]; //en pour commande anglaise; fr pour cmd française, 2 char + \0  = 3
+}struct_commandes;
+char current_lang[3] = "en"; //en by default.Si une commande est entrée et n'est pas spécifique à
+// la langue (ex. echo ou date), la langue de la dernière commande est utilisée (essayer avec date, aide, date)
+int continuer = 1; // Variable pour contrôler la boucle principale
+
+//====================== fonctions ====================
+
+int afficher_version(char*);
+int afficher_aide(char*);
+int traiter_echo(char*);
+int traiter_quit(char*);
+int traiter_date(char*);
+int traiter_repl(char*);
+
+
+int main()
+{
+
+    struct_commandes commandes_tab[]={
+        {"echo",traiter_echo,"en"},
+        {"quit", traiter_quit,"en"},
+        {"exit", traiter_quit,"en"},
+        {"version", afficher_version,"en"},
+        {"help", afficher_aide,"en"},
+        {"date",traiter_date,"en"},
+        {"repl", traiter_repl,"en"},
+        //ajout des commandes en français
+        {"aide", afficher_aide,"fr"},
+        {"quitter", traiter_quit,"fr"},
+    };
+
+
+    // Boucle principale qui lit et traite les commandes utilisateur
+    while (continuer)
+    {
+        printf("> "); // Affiche le prompt de commande
+
+        // Buffer pour stocker la commande utilisateur
+        char commande[1024];
+
+        // Lit la commande utilisateur et la stocke dans le buffer
+        fgets(commande, sizeof(commande), stdin);
+
+        // Enlève le caractère de fin de ligne ajouté par fgets
+        commande[strcspn(commande, "\n")] = 0;
+
+        // Traite la commande en fonction de son contenu
+        // parcours et compare le tableau avec les commandes dispo
+        int nb_commandes = sizeof(commandes_tab) / sizeof(struct_commandes);
+        int commande_trouvee = 0; // 0 si la commande n'a pas été trouvée dans le tableau, 1 si elle l'est
+        for(int i=0 ; i < nb_commandes ; i++){
+            size_t command_size = strlen(commandes_tab[i].commande);
+            if(strncmp(commande, commandes_tab[i].commande, command_size) == 0 &&
+               (commande[command_size] == '\0' || commande[command_size] == ' ')){
+                strcpy(current_lang, commandes_tab[i].lang);
+                commandes_tab[i].p_fonction(commande);
+                commande_trouvee = 1; //commande trouvée dans le tableau
+                break;
+            }
+        }
+        
+        // commande non trouvée, mais on vérifie si c'est une affectation de variable, un accès à une variable ou un calcul
+        if (!commande_trouvee && strlen(commande) > 0) {
+                    
+            // premier cas : affectation de variable (présence de '=')
+            if (strchr(commande, '=') && !strstr(commande, "lambda")) {
+                char var_name[64], var_value[128];
+                if (sscanf(commande, " %[^=] = %[^\n]", var_name, var_value) == 2) {
+                    // Nettoyage des espaces autour du nom
+                    char *trim_name = strtok(var_name, " ");
+                    set_variable(trim_name, var_value);
+                }
+            } 
+            // deuxième cas : accès direct à une variable (un seul mot comme "x")
+            else if (find_variable(commande) != -1) {
+                get_variable(commande);
+            }
+            // troisième cas : calcul mathématique ou expression lambda
+            else {
+                TokenTab pf = postfix(commande);
+                // Vérification d'erreurs lexer
+                int error_lex = 0;
+                for(int j=0; j<pf.Tokentab_size; j++) {
+                    if(pf.Token_i[j].type == Token_erreur) error_lex = 1;
+                }
+
+                if(!error_lex) {
+                    double res = evaluateur(pf);
+                    if(calcul_erreur == 0) {
+                        printf("res : %f \n", res);
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+
+int afficher_version(char*){
+    printf("Version CLI : %d.%d\n", CLI_MAIN_VERS, CLI_LOWER_VERS);
+    return 0;
+}
+
+int afficher_aide(char*){
+    if(strcmp(current_lang,"fr") == 0)
+    printf(
+    "Commandes disponibles :\n"
+    "aide         : afficher l'aide\n"
+    "version      : afficher la version du programme\n"
+    "date         : afficher la date système\n"
+    "echo <texte> : afficher le texte entré\n"
+    "quitter      : quitter le programme\n"
+    );
+    if(strcmp(current_lang, "en") == 0)
+    printf(
+    "Available commands:\n"
+    "help       : display help\n"
+    "version    : display program version\n"
+    "date       : display system date\n"
+    "echo <text>: display entered text\n"
+    "quit       : exit the program\n"
+    );
+    return 0;
+}
+
+int traiter_echo(char* commande){
+    // Traite la commande "echo" pour afficher du texte
+    printf("Echo: ");
+
+    // Imprime la chaîne
+    for (int i = 5; commande[i] != '\0'; i++)
+    {
+        printf("%c", commande[i]);
+    }
+    printf("\n"); // Saut de ligne après la sortie
+    return 0;
+}
+
+int traiter_quit(char* commande){
+    if(strcmp(current_lang, "en") == 0) 
+        printf("Stopping...\n");
+    if(strcmp(current_lang, "fr") == 0) 
+        printf("Arrêt...\n");
+    continuer = 0;
+    return 0;
+}
+
+int traiter_date(char*){
+    // traite la commande "date" pour afficher la date
+    time_t now = time(NULL);         // Get current time
+    struct tm *t = localtime(&now);  // Convert to local time structure
+    
+    if(strcmp(current_lang,"en")==0){
+        printf("Current date : %d/%d/%d , %d:%d:%d\n", t->tm_year + 1900 , // Add 1900 to get the actual year
+        t->tm_mon + 1,    // Months are numbered from 0 to 11, so add 1 to match real month numbers (1-12)
+        t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec);
+    }else if(strcmp(current_lang,"fr")==0){
+        printf("Date actuelle : %d/%d/%d , %d:%d:%d\n", t->tm_year + 1900 , // Add 1900 to get the actual year
+        t->tm_mon + 1,    // Months are numbered from 0 to 11, so add 1 to match real month numbers (1-12)
+        t->tm_mday,t->tm_hour,t->tm_min,t->tm_sec);
+    }
+    return 0;
+}
+
+int traiter_repl(char* commande){
+    // postfix() s'occupe déjà d'appeler le tokenizer en interne
+    TokenTab pf = postfix(commande + 5); 
+    double res = evaluateur(pf);
+    
+    if(calcul_erreur == 0) {
+        printf("res : %f \n", res);
+    }
+    return 0;
+}
