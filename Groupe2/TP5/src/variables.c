@@ -16,7 +16,7 @@ Contient les 3 fonctions principales pour la gestion des variables :
 /* ========= MACROS ========= */
 
 /* ========= GLOBAL VARIABLES ========= */
-Variable symbol_table[100];
+Variable variable_array[100];
 int nb_vars = 0;
 
 /* ========= FUNCTIONS ========= */
@@ -24,7 +24,7 @@ int nb_vars = 0;
 // Cherche l'index d'une variable par son nom
 int find_variable(char* name) {
     for (int i = 0; i < nb_vars; i++) {
-        if (strcmp(symbol_table[i].name, name) == 0) return i;
+        if (strcmp(variable_array[i].name, name) == 0) return i;
     }
     return -1;
 }
@@ -41,7 +41,7 @@ void set_variable(char* name, char* value_raw) {
     VarType new_type = detect_type(value_raw);
 
     // Vérification du changement de type interdit
-    if (idx != -1 && symbol_table[idx].type != new_type) {
+    if (idx != -1 && variable_array[idx].type != new_type) {
         printf("Erreur : changement de type non autorisé pour la variable %s\n", name);
         return;
     }
@@ -49,21 +49,21 @@ void set_variable(char* name, char* value_raw) {
     // Si nouvelle variable, on l'ajoute
     if (idx == -1) {
         idx = nb_vars++;
-        strcpy(symbol_table[idx].name, name);
-        symbol_table[idx].type = new_type;
+        strcpy(variable_array[idx].name, name);
+        variable_array[idx].type = new_type;
     }
 
     // Stockage de la valeur selon le type
     if (new_type == TYPE_STRING) {
         // On enlève les guillemets
-        sscanf(value_raw, "\"%[^\"]\"", symbol_table[idx].value.s_val);
+        sscanf(value_raw, "\"%[^\"]\"", variable_array[idx].value.s_val);
         printf("Variable %s définie (chaîne)\n", name);
     } else if (new_type == TYPE_REAL) {
-        symbol_table[idx].value.d_val = atof(value_raw);
-        printf("Variable %s définie avec %.2f (réel)\n", name, symbol_table[idx].value.d_val);
+        variable_array[idx].value.d_val = atof(value_raw);
+        printf("Variable %s définie avec %.2f (réel)\n", name, variable_array[idx].value.d_val);
     } else {
-        symbol_table[idx].value.i_val = atoi(value_raw);
-        printf("Variable %s définie avec %d (entier)\n", name, symbol_table[idx].value.i_val);
+        variable_array[idx].value.i_val = atoi(value_raw);
+        printf("Variable %s définie avec %d (entier)\n", name, variable_array[idx].value.i_val);
     }
 }
 
@@ -73,7 +73,7 @@ void get_variable(char* name) {
         printf("Erreur : la variable %s n'est pas définie\n", name);
         return;
     }
-    if (symbol_table[idx].type == TYPE_INT) printf("%d\n", symbol_table[idx].value.i_val);
-    else if (symbol_table[idx].type == TYPE_REAL) printf("%.2f\n", symbol_table[idx].value.d_val);
-    else printf("%s\n", symbol_table[idx].value.s_val);
+    if (variable_array[idx].type == TYPE_INT) printf("%d\n", variable_array[idx].value.i_val);
+    else if (variable_array[idx].type == TYPE_REAL) printf("%.2f\n", variable_array[idx].value.d_val);
+    else printf("%s\n", variable_array[idx].value.s_val);
 }

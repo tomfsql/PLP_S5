@@ -15,7 +15,7 @@
 //====================== constantes ====================
 // Program version :
 #define CLI_MAIN_VERS 3
-#define CLI_LOWER_VERS 0
+#define CLI_LOWER_VERS 1
 //program version is CLI_MAIN_VERS.CLI_LOWER_VERS
 
 //====================== variables globales ====================
@@ -84,40 +84,84 @@ int main()
                 break;
             }
         }
-        
-        // commande non trouvée, mais on vérifie si c'est une affectation de variable, un accès à une variable ou un calcul
         if (!commande_trouvee && strlen(commande) > 0) {
-                    
-            // premier cas : affectation de variable (présence de '=')
-            if (strchr(commande, '=') && !strstr(commande, "lambda")) {
-                char var_name[64], var_value[128];
-                if (sscanf(commande, " %[^=] = %[^\n]", var_name, var_value) == 2) {
-                    // Nettoyage des espaces autour du nom
-                    char *trim_name = strtok(var_name, " ");
-                    set_variable(trim_name, var_value);
-                }
-            } 
-            // deuxième cas : accès direct à une variable (un seul mot comme "x")
-            else if (find_variable(commande) != -1) {
-                get_variable(commande);
-            }
-            // troisième cas : calcul mathématique ou expression lambda
-            else {
-                TokenTab pf = postfix(commande);
-                // Vérification d'erreurs lexer
-                int error_lex = 0;
-                for(int j=0; j<pf.Tokentab_size; j++) {
-                    if(pf.Token_i[j].type == Token_erreur) error_lex = 1;
+            //commande non trouvée, mais on vérifie si c'est une expression lambda
+            if (strstr(commande, "lambda")) {
+                char param[16], expr[256], arg_str[64], final_expr[512];
+                
+                // Extraction rudimentaire : (lambda x.x + 2 * x) 3
+                char *start = strstr(commande, "lambda") + 7; // Après "lambda "
+                char *dot = strchr(start, '.');               // Le point
+                char *end_paren = strrchr(dot, ')');          // La parenthèse fermante
+                char *arg_part = end_paren + 1;               // Ce qui suit la parenthèse
+
+                // Nom du paramètre (ex: x)
+                strncpy(param, start, dot - start);
+                param[dot - start] = '\0';
+
+                // Corps de l'expression (ex: x + 2 * x)
+                strncpy(expr, dot + 1, end_paren - (dot + 1));
+                expr[end_paren - (dot + 1)] = '\0';
+
+                // Argument (ex: 3 ou une variable y)
+                sscanf(arg_part, " %s", arg_str);
+                
+                // Si l'argument est une variable déjà définie, on prend sa valeur
+                int var_idx = find_variable(arg_str);
+                char arg_valeur[64];
+                if (var_idx != -1) {
+                    if (variable_array[var_idx].type == TYPE_INT) 
+                        sprintf(arg_valeur, "%d", variable_array[var_idx].value.i_val);
+                    else 
+                        sprintf(arg_valeur, "%f", variable_array[var_idx].value.d_val);
+                } else {
+                    strcpy(arg_valeur, arg_str); // C'est un nombre direct
                 }
 
-                if(!error_lex) {
-                    double res = evaluateur(pf);
-                    if(calcul_erreur == 0) {
-                        printf("res : %f \n", res);
+                // Substitution et envoi au moteur de calcul
+                substituer_lambda(final_expr, expr, param, arg_valeur);
+                printf("Substitution effectuée : %s\n", final_expr);
+                
+                TokenTab pf = postfix(final_expr);
+                printf("res : %f\n", evaluateur(pf));
+            }else
+                
+                // commande non trouvée, mais on vérifie si c'est une affectation de variable, un accès à une variable ou un calcul
+                if (!commande_trouvee && strlen(commande) > 0) {
+                            
+                    // premier cas : affectation de variable (présence de '=')
+                    if (strchr(commande, '=')) {
+                        char var_name[64], var_value[128];
+                        if (sscanf(commande, " %[^=] = %[^\n]", var_name, var_value) == 2) {
+                            // Nettoyage des espaces autour du nom
+                            char *trim_name = strtok(var_name, " ");
+                            set_variable(trim_name, var_value);
+                        }
+                    } 
+                    // deuxième cas : accès direct à une variable (un seul mot comme "x")
+                    else if (find_variable(commande) != -1) {
+                        get_variable(commande);
+                    }
+                    // troisième cas : calcul mathématique 
+                    else {
+                        TokenTab pf = postfix(commande);
+                        // Vérification d'erreurs lexer
+                        int error_lex = 0;
+                        for(int j=0; j<pf.Tokentab_size; j++) {
+                            if(pf.Token_i[j].type == Token_erreur) error_lex = 1;
+                        }
+
+                        if(!error_lex) {
+                            double res = evaluateur(pf);
+                            if(calcul_erreur == 0) {
+                                printf("res : %f \n", res);
+                            }
+                        }
                     }
                 }
-            }
-        }
+            
+        } 
+
     }
     return 0;
 }

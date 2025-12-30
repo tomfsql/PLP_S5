@@ -7,5 +7,6 @@ extern int calcul_erreur;
 
 
 double evaluateur(TokenTab);
+void substituer_lambda(char *dest, const char *expr, const char *param, const char *valeur);
 
 #endif

@@ -37,18 +37,24 @@ TokenTab postfix(char* commande){
         Token curr_token = token_array.Token_i[token_i]; //pour simplifier la lecture
         token_i++;
 
-        // gestion des nombres
-        if( curr_token.type == Token_nombre )
+        // gestion des nombres ET des variables
+        if( curr_token.type == Token_nombre || curr_token.type == Token_identifiant )
         {
-            sortie[sortie_i] = (char)((int)curr_token.nombre + '0'); // Debug string (limité à 0-9)
+            if (curr_token.type == Token_nombre) {
+                sortie[sortie_i] = (char)((int)curr_token.nombre + '0'); // Debug string
+            } else {
+                sortie[sortie_i] = curr_token.nom_variable[0]; // Debug : première lettre de la variable
+            }
             
-            // replissage du tokentab de sortie
-            token_out.Token_i[token_out.Tokentab_size].nombre = curr_token.nombre;
-            token_out.Token_i[token_out.Tokentab_size].type = Token_nombre;
+            // On copie le token entier (type + valeur/nom) dans la sortie
+            token_out.Token_i[token_out.Tokentab_size] = curr_token;
             token_out.Tokentab_size++;
             
             sortie_i++;
-            printf("Nombre ajouté à la sortie %.2f \n",curr_token.nombre);
+            if (curr_token.type == Token_nombre)
+                printf("Nombre ajouté à la sortie %.2f \n", curr_token.nombre);
+            else
+                printf("Variable %s ajoutée à la sortie\n", curr_token.nom_variable);
             continue;
         }
 
