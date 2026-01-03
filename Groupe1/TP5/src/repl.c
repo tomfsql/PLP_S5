@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include "parse.h"
 #include "calc.h"
+#include <stdlib.h>
 /**
  * Programme qui simule un interpréteur de commandes simple.
  * Il lit les commandes utilisateur et les traite en fonction de leur contenu.
@@ -61,33 +62,23 @@ int lookup_variable(char* name){
 }
 
 char* extract_variable_name(char* str){
-    int i = 0;
-    while(str[i] != '=' && str[i] != '\0'){
-        i++;
+    char* var_name = "";
+    char *equals_sign = strchr(str, '=');
+    if (equals_sign != NULL) {
+        *equals_sign = '\0';
+        var_name = str;
     }
-    char* var_name = (char*)malloc(i + 1);
-    strncpy(var_name, str, i);
-    var_name[i] = '\0';
     return var_name;
 }
 
 char* extract_variable_value(char* str){
-    int i = 0;
-    int found_equal = 0;
+    char *equals_sign = strchr(str, '=');
+    int i = equals_sign;
+    char* var = (char*)malloc(strlen(str) - i + 1);
     while (str[i] != '\0'){
-        if(found_equal && str[i] == ' '){
-            i++;
-        }
-        if(str[i] == '='){
-            found_equal = 1;
-        }
-        if(!found_equal){
-            i++;
-        }
+        var[i] = str[i];
     }
-    char* var = (char*)malloc(len(str) - i + 1);
-    strncpy(var, str, len(str) -i);
-    var[len(str) - i + 1] = '\0';
+    var[i+1] = '\0';
     return var;
 }
 
@@ -106,6 +97,7 @@ int convert_to_int(char* str){
 int traiter_affectation(char* str){
     char* var_name = extract_variable_name(str);
     char* var_value = extract_variable_value(str);
+    printf("Variable name : %c \n", var_name);
     StoredValue val;
     val.name = var_name;
     if(var_value[0] >= '0' && var_value[0] <= '9'){
@@ -113,10 +105,12 @@ int traiter_affectation(char* str){
             float f_value = convert_to_float(var_value);
             val.type = TYPE_FLOAT;
             val.value.f = f_value;
+            printf("Value of %c is %f \n", var_name, var_value);
         } else {
             int i_value = convert_to_int(var_value);
             val.type = TYPE_INT;
             val.value.i = i_value;
+            printf("Value of %c is %d \n", var_name, var_value);
         }
     } else {
         val.type = TYPE_STRING;
@@ -137,6 +131,33 @@ int traiter_affectation(char* str){
         return 1;
     }
     return 1;
+}
+
+int traiter_affichage(char* str){
+    char* var_name = extract_variable_name(str);
+    int pos = lookup_variable(var_name);
+    if(pos < 0){
+        printf("Variable not found or not defined.");
+        return 1;
+    }
+    StoredValue found_var = variables[pos];
+    switch (found_var.type)
+    {
+    case TYPE_FLOAT:
+        float fvalue = found_var.value.f;
+        printf(" %.2f \n", fvalue);
+        break;
+    case TYPE_INT:
+        int ivalue = found_var.value.i;
+        printf(" %d \n", ivalue);
+        break;
+    case TYPE_STRING:
+        char* svalue = found_var.value.str;
+        printf(" %s \n", svalue);
+        break;
+    default:
+        break;
+    }
 }
 
 int afficher_version(char* args){
@@ -190,7 +211,8 @@ int afficher_aide(char* args){
     printf("  date            : Affiche la date actuelle.\n");
     printf("  version         : Affiche la version du programme.\n");
     printf("  <expression arithmétique> : Effectue le calcul.\n");
-    printf("  affectation     : Déclare ou modifie une variable.\n");
+    printf("  <variable> = <valeur>     : Déclare ou modifie une variable.\n");
+    printf("  <variable>     : Affiche la valeur d'une variable si existante.\n");
     printf("  quit ou quitter            : Quitte le programme.\n");
 
     return 1;
@@ -205,8 +227,6 @@ struct function list[] = {
     {"quitter", traiter_quit},
     {"exit", traiter_quit},
     {"help", afficher_aide},
-    {"<expression arithmétique>", calcul},
-    {"<affectation>", traiter_affectation},
     {"aide", afficher_aide},
 };
 
@@ -252,6 +272,11 @@ int main(){
             else if(strchr(commande, '=') != NULL){
                 found = 1;
                 traiter_affectation(commande);
+                break;
+            }
+            else if(strchr(commande, '=') == NULL){
+                found = 1;
+                traiter_affichage(commande);
                 break;
             }
         }
