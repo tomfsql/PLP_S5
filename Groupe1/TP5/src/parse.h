@@ -11,7 +11,7 @@ int size_pile();
 void push(char c);
 char pop();
 char look();
-int is_negative_number(char* str, int pos);
+int is_negative_number(const char* str, int pos);
 char* lexer(char* args, char* output);
 
 #endif

@@ -33,7 +33,7 @@ float pop_v(){
     return 0.0f;
 }
 
-int is_negative_number(char* str, int pos) {
+int is_negative_number( const char* str, int pos) {
     return (str[pos] == '-' && isdigit((unsigned char)str[pos + 1]) &&
             (pos == 0 || strchr(operators, str[pos - 1])));
 }
