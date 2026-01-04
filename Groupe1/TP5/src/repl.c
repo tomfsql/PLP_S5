@@ -299,23 +299,22 @@ int main(){
                     break;
                 }
             }
-            else if(!isalpha((unsigned char)commande[0])){
+        }
+        if(!found){
+            if(!isalpha((unsigned char)commande[0])){
 
                 found = 1;
                 calcul(commande);
-                break;
             }
             else if(strchr(commande, '=') != NULL){
 
                 found = 1;
                 traiter_affectation(commande);
-                break;
             }
-            else if(strchr(commande, '=') == NULL && strncmp(list[i].name, commande, cmd_len) != 0){
+            else{
 
                 found = 1;
                 traiter_affichage(commande);
-                break;
             }
         }
     }
