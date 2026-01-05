@@ -51,7 +51,6 @@ int is_numeric(const char *str){
         }
         offset++;
     }
-    printf("Numerical data \n");
     return 1;
 }
 
@@ -104,8 +103,6 @@ char* extract_variable_value(char* str){
 int traiter_affectation(char* str){
     char* var_value = extract_variable_value(str);
     char* var_name = extract_variable_name(str);
-    printf("Variable name : %s.\n", var_name);
-    printf("Variable value : %s.\n", var_value);
     StoredValue val;
     if(var_name == NULL){
         printf("Error in name assignment.\n");
@@ -118,12 +115,10 @@ int traiter_affectation(char* str){
             float f_value = atof(var_value);
             val.type = TYPE_FLOAT;
             val.value.f = f_value;
-            printf("Value of %s is %f \n", var_name, f_value);
         } else {
             int i_value = atoi(var_value);
             val.type = TYPE_INT;
             val.value.i = i_value;
-            printf("Value of %s is %d \n", var_name, i_value);
         }
     } else {
         val.type = TYPE_STRING;
@@ -167,8 +162,6 @@ int traiter_affichage(char* str){
     char* var_name = malloc(length+1);
     strncpy(var_name, str, length);
     var_name[length] = '\0';
-    printf("variable name : %s.\n", var_name);
-
     int pos = lookup_variable(var_name);
     if(pos < 0){
         printf("Variable not found or not defined. \n");
