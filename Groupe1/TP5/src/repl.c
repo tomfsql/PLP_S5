@@ -298,42 +298,72 @@ int traiter_lambda(char* str){
     char* dot = strchr(str, '.');
     char* end = strchr(str, ')');
     if (dot == NULL || end == NULL || end < dot){
-        printf("Wrong syntax .\n");
+        printf("Wrong syntax or parameter.\n");
         return 1;
     }
-    int length = end - (dot+1);
-    char* expr = malloc(length+1);
-    strncpy(expr, dot+1, length);
-    expr[length]='\0';
-
+    char* var_start = strchr(str, ' ');
+    if(var_start == NULL || var_start > dot) {
+        var_start = str + 7;
+    } else {
+        while(var_start < dot && isspace((unsigned char)*var_start)) {
+            var_start++;
+        }
+    }
+    int var_len = dot - var_start;
+    while (var_len > 0 && isspace((unsigned char)var_start[var_len - 1])) {
+        var_len--;
+    }
+    char* var_name = malloc(var_len + 1);
+    strncpy(var_name, var_start, var_len);
+    var_name[var_len] = '\0';
     char* val = end+1;
     while(*val != '\0' && isspace((unsigned char)*val)){
         val++;
     }
 
     float f_arg = 0.0;
-    if(*val != '\0'){
-        f_arg = atof(val);
-    }
+    int found_arg =0;
+    if (*val == '\0') {
+        int pos = lookup_variable(var_name);
+        if (pos >= 0) {
+            StoredValue v = variables[pos];
+            if (v.type == TYPE_FLOAT) f_arg = v.value.f;
+            else if (v.type == TYPE_INT) f_arg = (float)v.value.i;
+            found_arg = 1;
+        } else {
+            printf("Error: No argument provided and global variable '%s' is undefined.\n", var_name);
+            free(var_name);
+            return 1;
+        }
+    } 
     else {
-        printf("Error: Lambda requires an argument.\n");
+        if (isdigit(val[0]) || (val[0] == '-' && isdigit(val[1]))) {
+            f_arg = atof(val);
+            found_arg = 1;
+        } 
+        else {
+            int pos = lookup_variable(val);
+            if (pos >= 0) {
+                StoredValue v = variables[pos];
+                if (v.type == TYPE_FLOAT) f_arg = v.value.f;
+                else if (v.type == TYPE_INT) f_arg = (float)v.value.i;
+                found_arg = 1;
+            } else {
+                printf("Error: Argument '%s' is undefined.\n", val);
+                free(var_name);
+                return 1;
+            }
+        }
+    }
+    if (found_arg) {
+        int body_len = end - (dot + 1);
+        char* expr = malloc(body_len + 1);
+        strncpy(expr, dot + 1, body_len);
+        expr[body_len] = '\0';
+
+        parse_lambda(expr, var_name, f_arg);
         free(expr);
-        return 1;
     }
-    char* arg_value = strdup(val);
-    char* var_start = strchr(str, ' ');
-    if(var_start == NULL || var_start > dot) var_start = str + 7;
-    else {
-        var_start++;
-    }
-
-    int var_len = dot - var_start;
-    char* var_name = malloc(var_len + 1);
-    strncpy(var_name, var_start, var_len);
-    var_name[var_len] = '\0';
-    parse_lambda(expr, var_name,f_arg);
-
-    free(expr);
     free(var_name);
     return 1;
 }
