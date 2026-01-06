@@ -189,6 +189,7 @@ int traiter_affichage(char* str){
     }
 }
 
+
 int afficher_version(char* args){
     printf("TP3 - REPL Simple - Version %d\n", version);
     return 1;
@@ -234,6 +235,109 @@ int calcul(char* str){
     return result;
 }
 
+void append_string(char* dest, int* idx, const char* src) {
+    int i = 0;
+    while(src[i] != '\0') {
+        dest[*idx] = src[i];
+        (*idx)++;
+        i++;
+    }
+    dest[*idx] = '\0'; 
+}
+
+int parse_lambda(char* str, char* arg_name, float arg_val){
+    int offset_w = 0;
+    int offset_r = 0;
+    char* new_expr = calloc(1024, sizeof(char));
+    while(offset_r < strlen(str)){
+        if(isalpha(str[offset_r])){
+            int var_offset = offset_r;
+            while(isalnum(str[offset_r])){
+                offset_r++;
+            }
+            int len = offset_r - var_offset;
+            char* token = strndup(str+var_offset, len);
+
+            char value_text[64];
+            if (strcmp(token, arg_name) == 0) {
+                snprintf(value_text, 64, "%f", arg_val);
+                append_string(new_expr, &offset_w, value_text);
+            }
+            else {
+                int pos = lookup_variable(token);
+                if (pos < 0){
+                    printf("Error: Variable '%s' is undefined.\n", token);
+                    free(token);
+                    free(new_expr);
+                    return 2;
+                }
+                StoredValue existing = variables[pos];
+                if (existing.type == TYPE_INT) {
+                    snprintf(value_text, 64, "%d", existing.value.i);
+                    append_string(new_expr, &offset_w, value_text);
+                } else if (existing.type == TYPE_FLOAT) {
+                    snprintf(value_text, 64, "%f", existing.value.f);
+                    append_string(new_expr, &offset_w, value_text);
+                }
+            }
+            free(token);
+        }
+        else{
+            new_expr[offset_w] = str[offset_r];
+            offset_r++;
+            offset_w++;
+        }
+    }
+    new_expr[offset_w]='\0';
+    calcul(new_expr);
+    return 1;
+}
+
+
+int traiter_lambda(char* str){
+    char* dot = strchr(str, '.');
+    char* end = strchr(str, ')');
+    if (dot == NULL || end == NULL || end < dot){
+        printf("Wrong syntax .\n");
+        return 1;
+    }
+    int length = end - (dot+1);
+    char* expr = malloc(length+1);
+    strncpy(expr, dot+1, length);
+    expr[length]='\0';
+
+    char* val = end+1;
+    while(*val != '\0' && isspace((unsigned char)*val)){
+        val++;
+    }
+
+    float f_arg = 0.0;
+    if(*val != '\0'){
+        f_arg = atof(val);
+    }
+    else {
+        printf("Error: Lambda requires an argument.\n");
+        free(expr);
+        return 1;
+    }
+    char* arg_value = strdup(val);
+    char* var_start = strchr(str, ' ');
+    if(var_start == NULL || var_start > dot) var_start = str + 7;
+    else {
+        var_start++;
+    }
+
+    int var_len = dot - var_start;
+    char* var_name = malloc(var_len + 1);
+    strncpy(var_name, var_start, var_len);
+    var_name[var_len] = '\0';
+    parse_lambda(expr, var_name,f_arg);
+
+    free(expr);
+    free(var_name);
+    return 1;
+}
+
 int afficher_aide(char* args){
     printf("Aide: Ce programme supporte les commandes suivantes:\n");
     printf("  echo ou afficher <text>     : Affiche le texte fourni.\n");
@@ -242,6 +346,7 @@ int afficher_aide(char* args){
     printf("  <expression arithmétique> : Effectue le calcul.\n");
     printf("  <variable> = <valeur>     : Déclare ou modifie une variable.\n");
     printf("  <variable>     : Affiche la valeur d'une variable si existante.\n");
+    printf("(lambda x. <expression arithmétique ) x     : AEvalue l'expression fournie.\n");
     printf("  quit ou quitter            : Quitte le programme.\n");
 
     return 1;
@@ -294,15 +399,19 @@ int main(){
             }
         }
         if(!found){
-            if(!isalpha((unsigned char)commande[0])){
+            if(strncmp("(lambda", commande, 7) == 0){
 
                 found = 1;
-                calcul(commande);
+                traiter_lambda(commande);
             }
             else if(strchr(commande, '=') != NULL){
 
                 found = 1;
                 traiter_affectation(commande);
+            }
+            else if(!isalpha((unsigned char)commande[0])){
+                found=1;
+                calcul(commande);
             }
             else{
 
