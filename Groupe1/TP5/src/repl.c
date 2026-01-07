@@ -310,9 +310,26 @@ int parse_lambda(char* str, char* arg_name, float arg_val){
 
 int traiter_lambda(char* str){
     char* dot = strchr(str, '.');
-    char* end = strchr(str, ')');
+    char* end = NULL;
+    int depth = 0;
+    int found_start = 0;
+
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (str[i] == '(') {
+            depth++;
+            found_start = 1;
+        }
+        else if (str[i] == ')') {
+            depth--;
+        }
+
+        if (found_start && depth == 0) {
+            end = &str[i];
+            break;
+        }
+    }
     if (dot == NULL || end == NULL || end < dot){
-        printf("Wrong syntax or parameter.\n");
+        printf("Mauvaise syntaxe ou paramètre.\n");
         return 1;
     }
     char* var_start = strchr(str, ' ');
@@ -364,7 +381,7 @@ int traiter_lambda(char* str){
                 else if (v.type == TYPE_INT) f_arg = (float)v.value.i;
                 found_arg = 1;
             } else {
-                printf("Error: Argument '%s' is undefined.\n", val);
+                printf("Erreur: l'argument '%s' est indéfini.\n", val);
                 free(var_name);
                 return 1;
             }
