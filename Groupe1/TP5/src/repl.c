@@ -119,7 +119,7 @@ int traiter_affectation(char* str){
     char* var_name = extract_variable_name(str);
     StoredValue val;
     if(var_name == NULL){
-        printf("Error in name assignment.\n");
+        printf("Erreur lors de l'affectation.\n");
         free(var_value);
         return -1;
     }
@@ -158,7 +158,7 @@ int traiter_affectation(char* str){
             variables[nb_vars] = val;
         }
         else{
-            printf("No more available space for variables.\n");
+            printf("Aucun espace mémoire disponible pour stocker la variable.\n");
             free(val.name);
             return -1;
         }
@@ -178,7 +178,7 @@ int traiter_affichage(char* str){
     var_name[length] = '\0';
     int pos = lookup_variable(var_name);
     if(pos < 0){
-        printf("Variable not found or not defined, or command undefined. \n");
+        printf("Variable non-trouvée ou indéfinie, ou commande indéfinie. \n");
         free(var_name);
         return 1;
     }
@@ -280,7 +280,7 @@ int parse_lambda(char* str, char* arg_name, float arg_val){
             else {
                 int pos = lookup_variable(token);
                 if (pos < 0){
-                    printf("Error: Variable '%s' is undefined.\n", token);
+                    printf("Erreur: La variable '%s' est non-définie.\n", token);
                     free(token);
                     free(new_expr);
                     return 2;
