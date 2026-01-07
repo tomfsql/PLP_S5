@@ -201,6 +201,7 @@ int traiter_affichage(char* str){
     default:
         break;
     }
+    return 1;
 }
 
 
@@ -249,7 +250,7 @@ int calcul(char* str){
     return result;
 }
 
-void append_string(char* dest, int* idx, const char* src) {
+void append_string(char* dest, size_t* idx, const char* src) {
     int i = 0;
     while(src[i] != '\0') {
         dest[*idx] = src[i];
@@ -260,8 +261,8 @@ void append_string(char* dest, int* idx, const char* src) {
 }
 
 int parse_lambda(char* str, char* arg_name, float arg_val){
-    int offset_w = 0;
-    int offset_r = 0;
+    size_t offset_w = 0;
+    size_t offset_r = 0;
     char* new_expr = calloc(1024, sizeof(char));
     while(offset_r < strlen(str)){
         if(isalpha(str[offset_r])){
@@ -432,8 +433,6 @@ int main(){
     for(int i = 0; i < 100; i++){
         variables[i].name = NULL;
     }
-
-    int nb_variables = 0;
 
     int continuer = 1; // Variable pour contrôler la boucle principale
 
