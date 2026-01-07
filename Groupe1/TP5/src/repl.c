@@ -82,8 +82,13 @@ int lookup_variable(char* name){
 char* extract_variable_name(char* str){
     char* equals = strchr(str, '=');
     if(equals == NULL)return NULL;
-
+    while (str < equals && isspace((unsigned char)*str)) {
+        str++;
+    }
     int length = equals - str;
+    while (length > 0 && isspace((unsigned char)str[length - 1])) {
+        length--;
+    }
     char* name = malloc(length+1);
     strncpy(name, str, length);
     name[length] = '\0';
@@ -92,12 +97,21 @@ char* extract_variable_name(char* str){
 
 char* extract_variable_value(char* str){
     char* equals = strchr(str, '=');
-    if(equals != NULL){
-        return strdup(equals +1);
+    if(equals == NULL) return NULL;
+    char* start = equals+1;
+    while (*start != '\0' && isspace((unsigned char)*start)) {
+        start++;
     }
-    else{
-        return strdup("");
+    int length = strlen(start);
+    while (length > 0 && isspace((unsigned char)start[length - 1])) {
+        length--;
     }
+    char* value = malloc(length+1);
+    if(value){
+        strncpy(value, start, length);
+        value[length] = '\0';
+    }
+    return value;
 }
 
 int traiter_affectation(char* str){
@@ -164,7 +178,7 @@ int traiter_affichage(char* str){
     var_name[length] = '\0';
     int pos = lookup_variable(var_name);
     if(pos < 0){
-        printf("Variable not found or not defined. \n");
+        printf("Variable not found or not defined, or command undefined. \n");
         free(var_name);
         return 1;
     }
@@ -310,6 +324,7 @@ int traiter_lambda(char* str){
         }
     }
     int var_len = dot - var_start;
+    // trimming the variable name
     while (var_len > 0 && isspace((unsigned char)var_start[var_len - 1])) {
         var_len--;
     }
@@ -335,12 +350,12 @@ int traiter_lambda(char* str){
             free(var_name);
             return 1;
         }
-    } 
+    }
     else {
         if (isdigit(val[0]) || (val[0] == '-' && isdigit(val[1]))) {
             f_arg = atof(val);
             found_arg = 1;
-        } 
+        }
         else {
             int pos = lookup_variable(val);
             if (pos >= 0) {
@@ -376,7 +391,7 @@ int afficher_aide(char* args){
     printf("  <expression arithmétique> : Effectue le calcul.\n");
     printf("  <variable> = <valeur>     : Déclare ou modifie une variable.\n");
     printf("  <variable>     : Affiche la valeur d'une variable si existante.\n");
-    printf("(lambda x. <expression arithmétique ) x     : AEvalue l'expression fournie.\n");
+    printf("(lambda <variable>. <expression arithmétique ) <optional variable<     : Evalue l'expression fournie.\n");
     printf("  quit ou quitter            : Quitte le programme.\n");
 
     return 1;
