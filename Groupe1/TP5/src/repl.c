@@ -167,6 +167,66 @@ int traiter_affectation(char* str){
     return 1;
 }
 
+void sauvegarder_variables(){
+    const char* filename = "variables.txt";
+    FILE *file = fopen(filename,"w");
+
+    if(file == NULL){
+        printf("Impossible to open file %s for writing.\n", filename);
+        return;
+    }
+
+    int count=0;
+    for (int i = 0; i < 100; i++) {
+        if (variables[i].name != NULL) {
+            switch (variables[i].type) {
+                case TYPE_INT:
+                    fprintf(file, "%s=%d\n", variables[i].name, variables[i].value.i);
+                    break;
+                case TYPE_FLOAT:
+                    fprintf(file, "%s=%.4f\n", variables[i].name, variables[i].value.f);
+                    break;
+                case TYPE_STRING:
+                    fprintf(file, "%s=%s\n", variables[i].name, variables[i].value.str);
+                    break;
+            }
+            count++;
+        }
+    }
+    fclose(file);
+    printf("%d variables sauvegardées dans '%s'.\n", count, filename);
+}
+
+void charger_variables() {
+    const char* filename = "variables.txt";
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Pas de variables trouvées (fichier '%s' manquant).\n", filename);
+        return;
+    }
+
+    char line[256];
+    int count = 0;
+
+    printf("Chargement des variables depuis '%s'...\n", filename);
+    while (fgets(line, sizeof(line), file)) {
+        line[strcspn(line, "\n")] = 0;
+
+        if (strlen(line) == 0) continue;
+        if (traiter_affectation(line) == 1) {
+            count++;
+        }
+    }
+
+    fclose(file);
+    if(count > 0){
+        printf("%d variables récupérées.\n", count);
+    }
+    else{
+        printf("Pas de variables récupérées.\n");
+    }
+}
+
 int traiter_affichage(char* str){
     int length = 0;
     while(!isspace(str[length]) && str[length] != '\0'){
@@ -219,6 +279,7 @@ int afficher_date(char* args){
 }
 
 int traiter_quit(char* args){
+    sauvegarder_variables();
     printf("Arrêt...\n");
     return 0;
 }
@@ -433,6 +494,8 @@ int main(){
     for(int i = 0; i < 100; i++){
         variables[i].name = NULL;
     }
+    charger_variables();
+
 
     int continuer = 1; // Variable pour contrôler la boucle principale
 
